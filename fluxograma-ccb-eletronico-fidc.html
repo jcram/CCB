@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxograma CCB Eletrônica via FIDC</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #1c2330;
+  --border:   rgba(255,255,255,0.08);
+
+  /* Happy path */
+  --happy:    #1a6b3a;
+  --happy-l:  #27a85a;
+  --happy-bg: rgba(39,168,90,0.08);
+
+  /* Unhappy / failure */
+  --fail:     #8b1a1a;
+  --fail-l:   #e05252;
+  --fail-bg:  rgba(224,82,82,0.10);
+
+  /* Warn / retry */
+  --warn:     #7a5a00;
+  --warn-l:   #f0b429;
+  --warn-bg:  rgba(240,180,41,0.09);
+
+  /* Neutral process */
+  --proc:     #1a3a6b;
+  --proc-l:   #4a8adc;
+  --proc-bg:  rgba(74,138,220,0.10);
+
+  /* FIDC specific */
+  --fidc:     #4a1a6b;
+  --fidc-l:   #9b6adc;
+  --fidc-bg:  rgba(155,106,220,0.10);
+
+  /* Decision */
+  --dec:      #2a2a1a;
+  --dec-l:    #d4a017;
+
+  --text:     #e6edf3;
+  --muted:    #7d8590;
+  --line-ok:  #27a85a;
+  --line-fail:#e05252;
+  --line-neu: #4a8adc;
+
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 0 0 80px;
+}
+
+/* subtle scanline */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 4px);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,17,23,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.header-left h1 {
+  font-size: 15px; font-weight: 600; letter-spacing: -0.2px;
+}
+.header-left p {
+  font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 2px;
+}
+.legend {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+}
+.leg {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-family: var(--mono); color: var(--muted);
+}
+.leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── MAIN CANVAS ── */
+.canvas {
+  position: relative; z-index: 1;
+  max-width: 1100px;
+  margin: 40px auto 0;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── LANE LABELS ── */
+.lane-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.lane-label {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── FLOW COLUMN ── */
+.flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 720px;
+  gap: 0;
+}
+
+/* ── NODE BASE ── */
+.node { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+/* ── TERMINAL ── */
+.terminal {
+  padding: 10px 40px;
+  border-radius: 30px;
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.terminal.start { background: var(--happy-bg); border-color: var(--happy-l); color: var(--happy-l); }
+.terminal.end-ok { background: var(--happy-bg); border-color: var(--happy-l); color: var(--happy-l); }
+.terminal.end-fail { background: var(--fail-bg); border-color: var(--fail-l); color: var(--fail-l); }
+
+/* ── PROCESS BOX ── */
+.proc-box {
+  width: 100%;
+  border-radius: 8px;
+  border-left: 3px solid;
+  padding: 13px 46px 13px 16px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  position: relative;
+  user-select: none;
+}
+.proc-box:hover { transform: translateX(3px); }
+.proc-box .tag {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 3px; opacity: 0.6;
+}
+.proc-box .title { font-size: 13px; font-weight: 600; }
+.proc-box .actors {
+  font-size: 10px; font-family: var(--mono); margin-top: 3px; opacity: 0.6;
+}
+.proc-box .detail {
+  display: none; margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 12px; font-weight: 300; line-height: 1.6; opacity: 0.85;
+}
+.proc-box.open .detail { display: block; }
+.proc-box .chevron {
+  position: absolute; right: 14px; top: 14px;
+  font-size: 14px; opacity: 0.35; transition: transform 0.2s, opacity 0.2s;
+}
+.proc-box.open .chevron { transform: rotate(180deg); opacity: 0.7; }
+
+/* colors per type */
+.proc-box.happy   { background: var(--happy-bg); border-color: var(--happy-l); }
+.proc-box.proc    { background: var(--proc-bg);  border-color: var(--proc-l);  }
+.proc-box.fidc    { background: var(--fidc-bg);  border-color: var(--fidc-l);  }
+.proc-box.warn    { background: var(--warn-bg);  border-color: var(--warn-l);  }
+.proc-box.fail-node { background: var(--fail-bg); border-color: var(--fail-l); }
+
+/* ── DECISION ── */
+.decision-wrap {
+  display: flex; align-items: flex-start; width: 100%; gap: 0;
+}
+.decision-center { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.diamond-outer {
+  width: 180px; height: 74px;
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.diamond-shape {
+  position: absolute;
+  width: 120px; height: 54px;
+  background: var(--dec); border: 1.5px solid var(--dec-l);
+  transform: rotate(45deg) scaleX(1.3);
+  border-radius: 4px;
+}
+.diamond-text {
+  position: relative; z-index: 1;
+  font-size: 11px; font-weight: 600; color: var(--dec-l);
+  text-align: center; line-height: 1.3;
+  pointer-events: none;
+  max-width: 140px;
+}
+
+.decision-side {
+  display: flex; align-items: flex-start;
+  padding-top: 20px; /* align to diamond midpoint */
+  gap: 0;
+}
+.h-line { height: 2px; align-self: center; }
+.h-line.fail-line { background: var(--line-fail); }
+.h-line.warn-line { background: var(--warn-l); }
+.h-arrowhead { align-self: center; width: 0; height: 0; }
+.h-arrowhead.fail-arr { border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid var(--line-fail); }
+.h-arrowhead.warn-arr { border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid var(--warn-l); }
+
+.side-label {
+  font-family: var(--mono); font-size: 9px; align-self: center;
+  padding: 2px 7px; border-radius: 10px; border: 1px solid; white-space: nowrap;
+  margin: 0 4px;
+}
+.side-label.fail-lab { color: var(--fail-l); border-color: var(--fail-l); background: var(--fail-bg); }
+.side-label.warn-lab { color: var(--warn-l); border-color: var(--warn-l); background: var(--warn-bg); }
+
+.side-box-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-top: 0; }
+.side-box {
+  border-radius: 6px; border: 1.5px solid; padding: 8px 12px;
+  font-size: 11px; font-weight: 500; max-width: 170px; line-height: 1.4;
+}
+.side-box.fail-box { border-color: var(--fail-l); color: var(--fail-l); background: var(--fail-bg); }
+.side-box.warn-box { border-color: var(--warn-l); color: var(--warn-l); background: var(--warn-bg); }
+
+.yes-label {
+  font-family: var(--mono); font-size: 10px; color: var(--happy-l);
+  margin-top: 3px;
+}
+
+/* ── CONNECTORS ── */
+.vline { width: 2px; }
+.vline.ok   { background: var(--line-ok); }
+.vline.neu  { background: var(--line-neu); }
+.vline.fail { background: var(--line-fail); }
+.vline.warn { background: var(--warn-l); }
+.vline.fidc { background: var(--fidc-l); }
+
+.arr { width: 0; height: 0; }
+.arr.ok   { border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--line-ok); }
+.arr.neu  { border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--line-neu); }
+.arr.fidc { border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--fidc-l); }
+
+/* ── PHASE DIVIDER ── */
+.phase-div {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  margin: 4px 0 4px;
+}
+.phase-div::before, .phase-div::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.phase-tag {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); white-space: nowrap;
+  padding: 3px 10px; border: 1px solid var(--border); border-radius: 10px;
+}
+
+/* ── SPLIT PARALLEL ── */
+.split-row {
+  display: flex; width: 100%; gap: 12px; justify-content: center;
+}
+.split-box {
+  flex: 1; border-radius: 8px; border-left: 3px solid;
+  padding: 11px 14px; font-size: 12px; max-width: 340px;
+}
+.split-box .split-title { font-weight: 600; font-size: 12px; }
+.split-box .split-sub { font-size: 11px; opacity: 0.7; margin-top: 3px; font-family: var(--mono); }
+.split-box.proc  { background: var(--proc-bg); border-color: var(--proc-l); }
+.split-box.fidc  { background: var(--fidc-bg); border-color: var(--fidc-l); }
+
+/* ── FAIL BANNER ── */
+.fail-banner {
+  width: 100%; border-radius: 8px;
+  background: var(--fail-bg); border: 1.5px solid var(--fail-l);
+  padding: 12px 16px; text-align: center;
+}
+.fail-banner .fb-title { font-size: 12px; font-weight: 600; color: var(--fail-l); }
+.fail-banner .fb-sub { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  width: 100%; padding: 6px 12px;
+  background: var(--bg2); border-radius: 6px; border: 1px solid var(--border);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--muted);
+  margin-bottom: 0; text-transform: uppercase;
+}
+
+/* animations */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.flow > * { animation: fadeUp 0.35s ease both; }
+.flow > *:nth-child(n) { animation-delay: calc(0.03s * var(--i, 1)); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>CCB Eletrônica via FIDC — Fluxo Completo de Emissão</h1>
+    <p>Lei 10.931/2004 · MP 2.200-2/2001 · Res. CVM 175/2022 · Clique nos blocos para detalhes</p>
+  </div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--happy-l)"></div>Happy Path</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--fail-l)"></div>Falha / Recusa</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--warn-l)"></div>Retry / Pendência</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--proc-l)"></div>Processo Interno</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--fidc-l)"></div>FIDC / Cessão</div>
+  </div>
+</div>
+
+<div class="canvas">
+<div class="flow">
+
+  <!-- START -->
+  <div class="node"><div class="terminal start">▶ INÍCIO — Solicitação de Crédito</div></div>
+  <div class="vline ok" style="height:20px"></div>
+
+  <!-- ══ FASE 1 ══ -->
+  <div class="phase-div"><span class="phase-tag">① Onboarding & KYC</span></div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 01 · Originação</div>
+      <div class="title">Cadastro & Proposta Digital</div>
+      <div class="actors">Tomador → Originador / Plataforma</div>
+      <div class="detail">Tomador (PF ou PJ) acessa plataforma digital do originador ou banco parceiro do FIDC. Preenche proposta informando: valor desejado, prazo, finalidade e garantes disponíveis. Aceita os termos e autoriza consulta a bureaus de crédito (LGPD Art. 7º). Canal: app, web ou API B2B.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:14px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 02 · Identificação</div>
+      <div class="title">Validação de Identidade (KYC Digital)</div>
+      <div class="actors">Tomador → Motor de KYC / Bureau</div>
+      <div class="detail">Biometria facial (liveness detection) + OCR de RG/CNH/CNPJ. Consulta Receita Federal para validação de CPF/CNPJ ativo. Verificação de autenticidade de documentos via IA. Score biométrico mínimo exigido pela política interna.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: KYC -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">KYC válido?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">NÃO</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box fail-box">⛔ Identidade não confirmada<br><small>Biometria reprovada ou doc inválido</small></div>
+        <div class="side-box warn-box">🔄 Retry: reenviar doc / nova biometria<br><small>Máx. 3 tentativas → encerramento</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 03 · Compliance</div>
+      <div class="title">Screening AML / PEP / Sanções</div>
+      <div class="actors">Motor Compliance → COAF · OFAC · Bacen · CVM</div>
+      <div class="detail">Consulta automática a: listas PEP (Pessoas Politicamente Expostas), COAF (notificações), OFAC/SDN (sanções internacionais), listas negras Bacen e CVM. Verificação de processos judiciais e protestos. Resultado: score de risco AML (baixo / médio / alto).</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: AML -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Risco AML aceitável?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">ALTO RISCO</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box fail-box">⛔ Operação bloqueada<br><small>Registro obrigatório no COAF (RAS)</small></div>
+        <div class="side-box warn-box">⚠️ Risco médio: due diligence<br><small>Análise manual por Compliance</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <!-- ══ FASE 2 ══ -->
+  <div class="phase-div"><span class="phase-tag">② Análise de Crédito</span></div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 04 · Scoring</div>
+      <div class="title">Motor de Crédito & Bureaus</div>
+      <div class="actors">Plataforma → Serasa · Boa Vista · SCR Bacen</div>
+      <div class="detail">Consulta SCR (Sistema de Informações de Crédito) do Bacen para exposição total do tomador. Scores externos: Serasa Experian, Boa Vista. Análise interna: renda declarada, comprometimento de renda, histórico na plataforma. Output: Score de crédito + limite sugerido + taxa de risco.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: SCORE -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Score ≥ mínimo da política?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">NÃO</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box fail-box">⛔ Crédito negado automaticamente<br><small>Notificação ao tomador</small></div>
+        <div class="side-box warn-box">⚠️ Score limítrofe: escalar<br><small>para análise manual (Comitê)</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 05 · Aprovação</div>
+      <div class="title">Comitê de Crédito / Aprovação Automática</div>
+      <div class="actors">Motor de Decisão · Comitê (alçadas altas)</div>
+      <div class="detail">Operações dentro da alçada: aprovação automática pelo motor. Acima da alçada: encaminhamento ao Comitê de Crédito com análise humana. Define: taxa final, prazo, sistema de amortização (SAC/Price/Bullet) e garantias exigidas como condição para emissão.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: Comitê -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Operação aprovada?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">NÃO</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box fail-box">⛔ Recusa formal com justificativa<br><small>Carta de recusa obrigatória (res. Bacen)</small></div>
+        <div class="side-box warn-box">🔄 Contraproposta: valor menor<br><small>ou garantia adicional exigida</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <!-- ══ FASE 3 ══ -->
+  <div class="phase-div"><span class="phase-tag">③ Estruturação & Emissão do Título</span></div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 06 · Geração</div>
+      <div class="title">Geração da CCB Eletrônica</div>
+      <div class="actors">Sistema Bancário / Plataforma</div>
+      <div class="detail">Geração automática do instrumento com todos os elementos obrigatórios da Lei 10.931/2004: denominação "CCB", valor principal, encargos (juros, IOF, TAC), tabela de amortização, datas de vencimento, qualificação completa das partes, cláusulas de vencimento antecipado e cross-default. Formato: PDF assinável ou XML estruturado.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 07 · Assinatura</div>
+      <div class="title">Assinatura Digital das Partes</div>
+      <div class="actors">Tomador · Avalistas · Instituição Financeira</div>
+      <div class="detail">Envio da CCB eletrônica para assinatura via plataforma certificada. Modalidades: (a) ICP-Brasil e-CPF/e-CNPJ para PJ e PF com certificado; (b) Assinatura eletrônica avançada (token SMS + biometria) para varejo PF. Todos os signatários assinam com timestamp auditável (RFC 3161).</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: Assinatura -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Assinatura válida e completa?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line warn-line" style="width:24px"></div>
+      <div class="side-label warn-lab">PENDENTE</div>
+      <div class="h-line warn-line" style="width:8px"></div>
+      <div class="h-arrowhead warn-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box warn-box">🔄 Reenvio automático (D+1, D+3, D+5)<br><small>Timeout em 7 dias → cancelamento</small></div>
+        <div class="side-box fail-box">⛔ Certificado inválido / revogado<br><small>Nova assinatura exigida com cert válido</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 08 · Garantias</div>
+      <div class="title">Formalização & Registro de Garantias</div>
+      <div class="actors">Originador → Cartório · DETRAN · CERC · B3</div>
+      <div class="detail">Conforme tipo: Imóvel → Alienação fiduciária no CRI (Cartório de Registro de Imóveis); Veículo → Gravame no DETRAN; Recebíveis → Cessão fiduciária via CERC ou B3; Valores mobiliários → Trava em custódia B3. Prazo típico: D+1 a D+5 para conclusão dos registros.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: Garantias -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Garantias registradas com sucesso?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line warn-line" style="width:24px"></div>
+      <div class="side-label warn-lab">FALHA</div>
+      <div class="h-line warn-line" style="width:8px"></div>
+      <div class="h-arrowhead warn-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box warn-box">⚠️ Pendência de registro<br><small>Suspender desembolso até regularizar</small></div>
+        <div class="side-box fail-box">⛔ Garantia já onerada<br><small>Exigir novo bem ou cancelar operação</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <!-- ══ FASE 4 ══ -->
+  <div class="phase-div"><span class="phase-tag">④ Registro & Custódia</span></div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box proc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 09 · Registro</div>
+      <div class="title">Registro da CCB na Registradora</div>
+      <div class="actors">Originador → B3 Balcão · Núclea · CERC</div>
+      <div class="detail">CCB eletrônica é enviada via API à registradora habilitada pelo Bacen (B3 Balcão, Núclea ou CERC). A registradora valida o instrumento, atribui um ID único (número da CCB), registra data certa e retorna certificado de registro. Este registro confere oponibilidade a terceiros e é pré-requisito para cessão ao FIDC.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: Registro -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Registro aceito pela registradora?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">REJEITADO</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box fail-box">⛔ Erro formal no instrumento<br><small>Corrigir e re-assinar a CCB</small></div>
+        <div class="side-box warn-box">🔄 Timeout de API / indisponibilidade<br><small>Retry automático com backoff exponencial</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <!-- ══ FASE 5 ══ -->
+  <div class="phase-div"><span class="phase-tag">⑤ Cessão ao FIDC</span></div>
+  <div class="vline fidc" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box fidc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 10 · Elegibilidade</div>
+      <div class="title">Verificação de Elegibilidade pelo FIDC</div>
+      <div class="actors">Administrador FIDC · Custodiante · Gestora</div>
+      <div class="detail">O administrador / gestora do FIDC verifica se a CCB atende aos critérios de elegibilidade definidos no regulamento: rating mínimo do cedente, prazo compatível com a carteira, ausência de cláusulas restritivas à cessão, garantias registradas e limite de concentração por devedor/setor.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline fidc" style="height:12px"></div>
+
+  <!-- DECISION: Elegibilidade -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">CCB elegível para o FIDC?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">NÃO ELEGÍVEL</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box fail-box">⛔ CCB mantida na carteira<br><small>do Originador (não cedida)</small></div>
+        <div class="side-box warn-box">⚠️ Renegociar condições<br><small>para atender critérios do regulamento</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline fidc" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box fidc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 11 · Precificação</div>
+      <div class="title">Precificação da Cessão</div>
+      <div class="actors">Originador ↔ Gestora FIDC</div>
+      <div class="detail">Definição do PU (Preço Unitário) de cessão via curva de desconto acordada. Considera: spread de risco do devedor, duration da carteira, custo de captação do FIDC e taxa de desconto de mercado. Geração do boletim de cessão com PU e quantidade de CCBs.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline fidc" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box fidc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 12 · Cessão</div>
+      <div class="title">Formalização do Contrato de Cessão</div>
+      <div class="actors">Originador (Cedente) → FIDC (Cessionário)</div>
+      <div class="detail">Assinatura do Contrato de Cessão de Créditos entre o originador e o FIDC, representado por seu administrador. Instrumento formaliza a transferência dos direitos creditórios. Notificação ao devedor (emitente da CCB) sobre a cessão — obrigatória para oponibilidade (Art. 290 CC).</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline fidc" style="height:12px"></div>
+
+  <!-- DECISION: Notificação devedor -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Notificação ao devedor confirmada?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line warn-line" style="width:24px"></div>
+      <div class="side-label warn-lab">PENDENTE</div>
+      <div class="h-line warn-line" style="width:8px"></div>
+      <div class="h-arrowhead warn-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box warn-box">⚠️ Reenvio de notificação<br><small>Cessão válida, mas sem oponibilidade plena</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline fidc" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box fidc" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 13 · Transferência</div>
+      <div class="title">Atualização da Titularidade na Registradora</div>
+      <div class="actors">Administrador FIDC → Registradora · Custodiante</div>
+      <div class="detail">A registradora atualiza o titular da CCB para o FIDC via API. O custodiante registra o ativo na carteira do fundo. A CCB passa a constar no patrimônio líquido (PL) do FIDC e é precificada diariamente pelo administrador (mark-to-market ou amortized cost conforme regulamento).</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline fidc" style="height:12px"></div>
+
+  <!-- ══ FASE 6 ══ -->
+  <div class="phase-div"><span class="phase-tag">⑥ Desembolso</span></div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <!-- PARALLEL: Pagamentos -->
+  <div class="node" style="width:100%">
+    <div class="section-header">Fluxo financeiro paralelo</div>
+    <div style="height:10px"></div>
+    <div class="split-row">
+      <div class="split-box fidc">
+        <div class="split-title">FIDC → Originador</div>
+        <div class="split-sub">Pagamento do PU de cessão</div>
+        <div style="font-size:11px;margin-top:6px;opacity:0.8;">FIDC liquida o valor acordado ao originador (cedente). Prazo: D+0 ou D+1 conforme contrato.</div>
+      </div>
+      <div class="split-box proc">
+        <div class="split-title">Originador → Tomador</div>
+        <div class="split-sub">Liberação do crédito (desembolso)</div>
+        <div style="font-size:11px;margin-top:6px;opacity:0.8;">Transferência via TED / Pix para conta do tomador. Registro do IOF. Comprovante de desembolso emitido.</div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:14px"></div>
+
+  <!-- DECISION: Desembolso -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Desembolso confirmado?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">FALHA</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box fail-box">⛔ Conta destino inválida / bloqueada<br><small>Notificar tomador para atualização</small></div>
+        <div class="side-box warn-box">🔄 Retry via TED se Pix falhar<br><small>SLA: resolver em até 2h úteis</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <!-- ══ FASE 7 ══ -->
+  <div class="phase-div"><span class="phase-tag">⑦ Gestão da Carteira & Monitoramento</span></div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box happy" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 14 · Monitoramento</div>
+      <div class="title">Cobrança & Monitoramento de Pagamentos</div>
+      <div class="actors">Servicer · Administrador FIDC · Tomador</div>
+      <div class="detail">Gestão de cobranças via boleto, débito automático ou Pix agendado. Régua de cobrança: D-5 (lembrete preventivo), D+1 (notificação de atraso), D+10 (2ª via), D+30 (negativação Serasa). Provisão PDD conforme Resolução CMN 2.682/99. Relatórios mensais ao FIDC e cotistas.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline neu" style="height:12px"></div>
+
+  <!-- DECISION: Pagamento -->
+  <div class="decision-wrap">
+    <div class="decision-center">
+      <div class="diamond-outer">
+        <div class="diamond-shape"></div>
+        <div class="diamond-text">Pagamentos em dia?</div>
+      </div>
+      <div class="yes-label">SIM ▼</div>
+    </div>
+    <div class="decision-side">
+      <div class="h-line fail-line" style="width:24px"></div>
+      <div class="side-label fail-lab">INADIMPLENTE</div>
+      <div class="h-line fail-line" style="width:8px"></div>
+      <div class="h-arrowhead fail-arr"></div>
+      <div class="side-box-wrap">
+        <div class="side-box warn-box">⚠️ Renegociação / Refinanciamento<br><small>Aditivo à CCB com novas condições</small></div>
+        <div class="side-box fail-box">⛔ Vencimento antecipado integral<br><small>Execução judicial (CCB = título exec. extrajudicial)</small></div>
+        <div class="side-box fail-box">⛔ Execução de garantias<br><small>Excussão: leilão, CRI, DETRAN</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <!-- ══ FASE 8 ══ -->
+  <div class="phase-div"><span class="phase-tag">⑧ Liquidação</span></div>
+  <div class="vline ok" style="height:12px"></div>
+
+  <div class="node">
+    <div class="proc-box happy" onclick="this.classList.toggle('open')">
+      <div class="tag">ETAPA 15 · Quitação</div>
+      <div class="title">Liquidação Total & Baixa do Título</div>
+      <div class="actors">Tomador → Servicer → Administrador FIDC → Registradora</div>
+      <div class="detail">Após pagamento integral do principal + juros + encargos: (1) Servicer confirma liquidação; (2) Administrador solicita baixa à registradora via API; (3) Registradora cancela o ID CCB e emite certificado de quitação; (4) Liberação de todas as garantias vinculadas; (5) Emissão de Termo de Quitação ao tomador. FIDC remove o ativo do PL.</div>
+      <span class="chevron">▾</span>
+    </div>
+  </div>
+  <div class="vline ok" style="height:20px"></div>
+
+  <!-- END -->
+  <div class="node"><div class="terminal end-ok">✔ FIM — CCB Quitada · Garantias Liberadas</div></div>
+
+  <!-- Fail end -->
+  <div style="height:32px"></div>
+  <div class="fail-banner">
+    <div class="fb-title">⛔ Encerramento por Inadimplência / Recusa</div>
+    <div class="fb-sub">Execução judicial · Dação em pagamento · Write-off pelo FIDC · Baixa contábil com PDD 100%</div>
+  </div>
+
+</div><!-- /flow -->
+</div><!-- /canvas -->
+
+<script>
+  // click to expand proc-box details
+  // already handled by onclick inline
+</script>
+</body>
+</html>

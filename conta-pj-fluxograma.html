@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conta PJ — Fluxograma Interativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #222733;
+    --accent: #00e5a0;
+    --accent2: #2979ff;
+    --accent3: #ff6b35;
+    --accent4: #b44eff;
+    --text: #e8ecf4;
+    --text2: #8892a4;
+    --text3: #555f72;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BG */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 1440px; margin: 0 auto; padding: 0 32px 80px; }
+
+  /* HEADER */
+  header {
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  }
+  .header-left {}
+  .badge {
+    display: inline-block;
+    background: rgba(0,229,160,0.12);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    padding: 4px 12px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,229,160,0.25);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  h1 { font-size: clamp(28px, 4vw, 52px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--text2); font-size: 15px; margin-top: 8px; font-weight: 400; }
+  .tabs {
+    display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px;
+  }
+  .tab {
+    padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.02em; color: var(--text2); transition: all 0.2s; border: none; background: none;
+    font-family: 'Syne', sans-serif;
+  }
+  .tab.active { background: var(--accent); color: #000; }
+  .tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+  /* PANELS */
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== FLUXOGRAMA ===== */
+  .flow-section-title {
+    font-size: 11px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.12em;
+    color: var(--text3); text-transform: uppercase; margin-bottom: 24px;
+  }
+
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .flow-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .flow-card.expanded { border-color: var(--accent); }
+
+  .flow-card-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 24px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .flow-icon {
+    width: 40px; height: 40px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .flow-card-header h3 { font-size: 15px; font-weight: 700; }
+  .flow-card-header p { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .expand-arrow {
+    margin-left: auto; color: var(--text3); transition: transform 0.2s; font-size: 14px;
+  }
+  .flow-card.expanded .expand-arrow { transform: rotate(180deg); color: var(--accent); }
+
+  .flow-steps { display: none; padding: 20px 24px; }
+  .flow-card.expanded .flow-steps { display: block; }
+
+  .step {
+    display: flex; gap: 14px; margin-bottom: 0;
+    position: relative;
+  }
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px; top: 36px;
+    width: 2px; height: calc(100% - 12px);
+    background: var(--border);
+  }
+  .step-num {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-top: 2px;
+  }
+  .step-content { padding-bottom: 20px; flex: 1; }
+  .step-content h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .step-content p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  .step-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .step-tag {
+    font-size: 10px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em;
+    padding: 2px 8px; border-radius: 2px;
+  }
+  .tag-rule { background: rgba(255,107,53,0.12); color: var(--accent3); border: 1px solid rgba(255,107,53,0.2); }
+  .tag-product { background: rgba(41,121,255,0.12); color: var(--accent2); border: 1px solid rgba(41,121,255,0.2); }
+  .tag-alert { background: rgba(180,78,255,0.12); color: var(--accent4); border: 1px solid rgba(180,78,255,0.2); }
+
+  .decision-box {
+    background: rgba(0,229,160,0.05);
+    border: 1px dashed rgba(0,229,160,0.3);
+    border-radius: 4px; padding: 10px 14px; margin-top: 8px;
+  }
+  .decision-box p { font-size: 11px; color: var(--accent); font-family: 'IBM Plex Mono', monospace; }
+
+  /* ===== PRODUTOS ===== */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+  .product-card:hover { border-color: rgba(41,121,255,0.5); transform: translateY(-2px); }
+  .product-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .product-icon {
+    width: 36px; height: 36px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .product-card h3 { font-size: 14px; font-weight: 700; }
+  .product-cat {
+    font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+    color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .product-features { list-style: none; }
+  .product-features li {
+    font-size: 12px; color: var(--text2); padding: 5px 0;
+    border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+  }
+  .product-features li:last-child { border-bottom: none; }
+  .product-features li::before { content: '→'; color: var(--accent); font-size: 10px; }
+  .product-tier {
+    margin-top: 14px; font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+    padding: 4px 10px; border-radius: 2px; display: inline-block;
+  }
+  .tier-core { background: rgba(0,229,160,0.1); color: var(--accent); }
+  .tier-add { background: rgba(41,121,255,0.1); color: var(--accent2); }
+  .tier-premium { background: rgba(180,78,255,0.1); color: var(--accent4); }
+
+  /* ===== REGRAS ===== */
+  .rules-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .rules-layout { grid-template-columns: 1fr; } }
+
+  .rules-group { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .rules-group-header {
+    padding: 16px 20px; background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .rules-group-header h3 { font-size: 14px; font-weight: 700; }
+  .rules-group-header .rg-icon { font-size: 16px; }
+  .rule-item { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-item h4 { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .rule-item p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .rule-code {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 3px; padding: 8px 12px; margin-top: 8px;
+    color: var(--accent); line-height: 1.6;
+    white-space: pre;
+  }
+  .severity { display: inline-block; font-size: 9px; font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 6px; border-radius: 2px; margin-left: 8px; vertical-align: middle; }
+  .sev-high { background: rgba(255,59,59,0.15); color: #ff5555; }
+  .sev-med { background: rgba(255,165,0,0.15); color: orange; }
+  .sev-low { background: rgba(0,229,160,0.15); color: var(--accent); }
+
+  /* LEGEND */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 32px;
+    padding: 16px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    .wrapper { padding: 0 16px 60px; }
+    h1 { font-size: 28px; }
+    .tabs { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="header-left">
+      <div class="badge">Produto Financeiro · PJ</div>
+      <h1>Conta PJ<br><span>Fluxograma Interativo</span></h1>
+      <p class="subtitle">Fluxos principais · Produtos agregados · Regras de negócio</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="showPanel('fluxo')">Fluxos</button>
+      <button class="tab" onclick="showPanel('produtos')">Produtos</button>
+      <button class="tab" onclick="showPanel('regras')">Regras</button>
+    </div>
+  </header>
+
+  <!-- ===================== FLUXOS ===================== -->
+  <div class="panel active" id="panel-fluxo">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div>Regra de negócio</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Produto agregado</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent4)"></div>Ponto de atenção</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Decisão / Bifurcação</div>
+    </div>
+
+    <p class="flow-section-title">// clique em um fluxo para expandir os passos</p>
+
+    <div class="flow-grid">
+
+      <!-- ABERTURA -->
+      <div class="flow-card" onclick="toggleCard(this)">
+        <div class="flow-card-header">
+          <div class="flow-icon" style="background:rgba(0,229,160,0.12);color:var(--accent)">🏢</div>
+          <div>
+            <h3>Abertura de Conta</h3>
+            <p>Onboarding e KYC PJ</p>
+          </div>
+          <span class="expand-arrow">▼</span>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(0,229,160,0.12);color:var(--accent)">01</div>
+            <div class="step-content">
+              <h4>Pré-cadastro</h4>
+              <p>CNPJ, razão social, atividade econômica (CNAE). Validação automática na Receita Federal.</p>
+              <div class="step-tags"><span class="step-tag tag-rule">CNPJ ativo obrigatório</span><span class="step-tag tag-rule">MEI / ME / EPP / SA</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(0,229,160,0.12);color:var(--accent)">02</div>
+            <div class="step-content">
+              <h4>KYC — Sócios & Representantes</h4>
+              <p>Envio de documentos dos sócios com +25% de participação. Prova de vida e selfie com documento.</p>
+              <div class="step-tags"><span class="step-tag tag-rule">Sócio ≥ 25% = PEP check</span><span class="step-tag tag-alert">Liveness detection</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(0,229,160,0.12);color:var(--accent)">03</div>
+            <div class="step-content">
+              <h4>Análise de Risco & Compliance</h4>
+              <p>Score de crédito PJ, verificação em listas restritivas (COAF, OFAC), análise do CNAE.</p>
+              <div class="decision-box"><p>✦ Aprovado → Conta ativa<br>✦ Pendente → Análise manual 48h<br>✦ Reprovado → Recurso 30 dias</p></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(0,229,160,0.12);color:var(--accent)">04</div>
+            <div class="step-content">
+              <h4>Ativação & Configuração</h4>
+              <p>Definição de limites iniciais, emissão de cartão, configuração de usuários e permissões.</p>
+              <div class="step-tags"><span class="step-tag tag-product">Cartão PJ</span><span class="step-tag tag-product">Conta digital</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PIX / TRANSFERÊNCIAS -->
+      <div class="flow-card" onclick="toggleCard(this)">
+        <div class="flow-card-header">
+          <div class="flow-icon" style="background:rgba(41,121,255,0.12);color:var(--accent2)">⚡</div>
+          <div>
+            <h3>Pix & Transferências</h3>
+            <p>Movimentações financeiras</p>
+          </div>
+          <span class="expand-arrow">▼</span>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(41,121,255,0.12);color:var(--accent2)">01</div>
+            <div class="step-content">
+              <h4>Iniciação do Pagamento</h4>
+              <p>Chave Pix (CNPJ, e-mail, telefone, aleatória) ou dados bancários. Validação de saldo disponível.</p>
+              <div class="step-tags"><span class="step-tag tag-rule">Limite diurno / noturno</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(41,121,255,0.12);color:var(--accent2)">02</div>
+            <div class="step-content">
+              <h4>Validação Anti-fraude</h4>
+              <p>Análise comportamental em tempo real, MFA para valores acima do threshold configurado.</p>
+              <div class="step-tags"><span class="step-tag tag-alert">MFA obrigatório > R$5k</span><span class="step-tag tag-rule">Frictionless < R$500</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(41,121,255,0.12);color:var(--accent2)">03</div>
+            <div class="step-content">
+              <h4>Aprovação Multinível</h4>
+              <p>Fluxo de aprovação configurável: 1 aprovador, dupla-alçada ou por faixa de valor.</p>
+              <div class="decision-box"><p>✦ Auto-aprovado → Executa<br>✦ Requer aprovação → Notifica aprovador<br>✦ Bloqueado → Análise manual</p></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(41,121,255,0.12);color:var(--accent2)">04</div>
+            <div class="step-content">
+              <h4>Liquidação</h4>
+              <p>Pix 24/7 imediato. TED/DOC D+0 até 17h. Comprovante automático com dados BACEN.</p>
+              <div class="step-tags"><span class="step-tag tag-product">Extrato em tempo real</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COBRANÇA -->
+      <div class="flow-card" onclick="toggleCard(this)">
+        <div class="flow-card-header">
+          <div class="flow-icon" style="background:rgba(255,107,53,0.12);color:var(--accent3)">📄</div>
+          <div>
+            <h3>Cobrança & Recebimentos</h3>
+            <p>Boleto, Pix e link de pagamento</p>
+          </div>
+          <span class="expand-arrow">▼</span>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(255,107,53,0.12);color:var(--accent3)">01</div>
+            <div class="step-content">
+              <h4>Criação da Cobrança</h4>
+              <p>Via API, portal ou app. Dados do pagador, valor, vencimento, instruções de multa e juros.</p>
+              <div class="step-tags"><span class="step-tag tag-product">Boleto Registrado</span><span class="step-tag tag-product">Pix Cob (QR dinâmico)</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(255,107,53,0.12);color:var(--accent3)">02</div>
+            <div class="step-content">
+              <h4>Envio & Acompanhamento</h4>
+              <p>Disparo automático por e-mail / WhatsApp / SMS. Dashboard de inadimplência.</p>
+              <div class="step-tags"><span class="step-tag tag-alert">Régua de cobrança</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(255,107,53,0.12);color:var(--accent3)">03</div>
+            <div class="step-content">
+              <h4>Conciliação</h4>
+              <p>Baixa automática após compensação. Exportação CNAB 240/400. Integração ERP via webhook.</p>
+              <div class="decision-box"><p>✦ Pago → Baixa automática<br>✦ Vencido → Aciona régua<br>✦ Cancelado → Devolução</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CRÉDITO -->
+      <div class="flow-card" onclick="toggleCard(this)">
+        <div class="flow-card-header">
+          <div class="flow-icon" style="background:rgba(180,78,255,0.12);color:var(--accent4)">💳</div>
+          <div>
+            <h3>Crédito PJ</h3>
+            <p>Limite, capital de giro e antecipação</p>
+          </div>
+          <span class="expand-arrow">▼</span>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(180,78,255,0.12);color:var(--accent4)">01</div>
+            <div class="step-content">
+              <h4>Elegibilidade</h4>
+              <p>Análise de faturamento (últimos 12m), tempo de conta ativa, histórico de movimentações e comportamento de pagamentos.</p>
+              <div class="step-tags"><span class="step-tag tag-rule">Conta ativa ≥ 3 meses</span><span class="step-tag tag-rule">Faturamento mínimo</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(180,78,255,0.12);color:var(--accent4)">02</div>
+            <div class="step-content">
+              <h4>Oferta de Crédito</h4>
+              <p>Score PJ proprietário + bureau externo. Limite pré-aprovado exibido no app. Aceite digital com assinatura eletrônica.</p>
+              <div class="step-tags"><span class="step-tag tag-product">Capital de Giro</span><span class="step-tag tag-product">Antecipação de Recebíveis</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(180,78,255,0.12);color:var(--accent4)">03</div>
+            <div class="step-content">
+              <h4>Liberação & Amortização</h4>
+              <p>Crédito na conta em até 2 horas. Parcelas debitadas automaticamente. Revisão de limite trimestral.</p>
+              <div class="decision-box"><p>✦ Adimplente → Limit upgrade<br>✦ Atraso 1-30d → Régua + Juros<br>✦ Atraso > 30d → Cobrança</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GESTÃO DE USUÁRIOS -->
+      <div class="flow-card" onclick="toggleCard(this)">
+        <div class="flow-card-header">
+          <div class="flow-icon" style="background:rgba(0,229,160,0.12);color:var(--accent)">👥</div>
+          <div>
+            <h3>Gestão de Usuários</h3>
+            <p>Permissões e alçadas</p>
+          </div>
+          <span class="expand-arrow">▼</span>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(0,229,160,0.12);color:var(--accent)">01</div>
+            <div class="step-content">
+              <h4>Roles Disponíveis</h4>
+              <p>Admin Master, Financeiro, Operador, Visualizador. Perfis customizáveis por empresa.</p>
+              <div class="step-tags"><span class="step-tag tag-rule">Admin = Sócio autorizado</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(0,229,160,0.12);color:var(--accent)">02</div>
+            <div class="step-content">
+              <h4>Convite & Validação</h4>
+              <p>Convite por e-mail. CPF validado na base. Aceite obrigatório com biometria facial no primeiro acesso.</p>
+              <div class="step-tags"><span class="step-tag tag-alert">Biometria obrigatória</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(0,229,160,0.12);color:var(--accent)">03</div>
+            <div class="step-content">
+              <h4>Alçadas & Aprovações</h4>
+              <p>Configuração de limites por usuário e por operação. Workflow de aprovação dupla para valores críticos.</p>
+              <div class="decision-box"><p>✦ Valor ≤ Limite → Auto-aprova<br>✦ Valor > Limite → Escalona</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENCERRAMENTO -->
+      <div class="flow-card" onclick="toggleCard(this)">
+        <div class="flow-card-header">
+          <div class="flow-icon" style="background:rgba(255,107,53,0.12);color:var(--accent3)">🔒</div>
+          <div>
+            <h3>Encerramento de Conta</h3>
+            <p>Offboarding e retenção</p>
+          </div>
+          <span class="expand-arrow">▼</span>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(255,107,53,0.12);color:var(--accent3)">01</div>
+            <div class="step-content">
+              <h4>Solicitação</h4>
+              <p>Pedido via app ou central. Verificação de pendências: saldo positivo, débitos, cobranças ativas, crédito em aberto.</p>
+              <div class="step-tags"><span class="step-tag tag-rule">Prazo mínimo 30 dias</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(255,107,53,0.12);color:var(--accent3)">02</div>
+            <div class="step-content">
+              <h4>Tentativa de Retenção</h4>
+              <p>Oferta automatizada de produtos de retenção. Atendimento especializado para clientes acima de tier Gold.</p>
+              <div class="decision-box"><p>✦ Aceita oferta → Permanece<br>✦ Não aceita → Segue encerramento</p></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(255,107,53,0.12);color:var(--accent3)">03</div>
+            <div class="step-content">
+              <h4>Liquidação Final</h4>
+              <p>Transferência de saldo remanescente, cancelamento de cartões, exclusão de chaves Pix, emissão de extrato histórico.</p>
+              <div class="step-tags"><span class="step-tag tag-rule">Dados retidos 5 anos (BACEN)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== PRODUTOS ===================== -->
+  <div class="panel" id="panel-produtos">
+    <p class="flow-section-title">// produtos e serviços agregados à conta PJ</p>
+    <div class="products-grid">
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(0,229,160,0.12);color:var(--accent)">💰</div>
+          <div><h3>Conta Corrente PJ</h3><div class="product-cat">Core Banking</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Conta digital sem mensalidade</li>
+          <li>CNPJ e CPF dos sócios vinculados</li>
+          <li>Extrato em tempo real</li>
+          <li>DDA — Débito Direto Autorizado</li>
+        </ul>
+        <span class="product-tier tier-core">CORE</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(0,229,160,0.12);color:var(--accent)">⚡</div>
+          <div><h3>Pix PJ</h3><div class="product-cat">Pagamentos</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Chave CNPJ, e-mail, telefone</li>
+          <li>Pix Cob — QR dinâmico</li>
+          <li>Pix Garantido / Agendado</li>
+          <li>Extrato Pix com ISPB</li>
+        </ul>
+        <span class="product-tier tier-core">CORE</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(41,121,255,0.12);color:var(--accent2)">🧾</div>
+          <div><h3>Cobrança & Boleto</h3><div class="product-cat">Recebimentos</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Boleto Registrado FEBRABAN</li>
+          <li>CNAB 240 / 400</li>
+          <li>Régua automática de cobrança</li>
+          <li>Link de pagamento</li>
+        </ul>
+        <span class="product-tier tier-add">ADICIONAL</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(41,121,255,0.12);color:var(--accent2)">💳</div>
+          <div><h3>Cartão Corporativo</h3><div class="product-cat">Meios de Pagamento</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Múltiplos cartões por CNPJ</li>
+          <li>Cartão virtual instantâneo</li>
+          <li>Limite por colaborador</li>
+          <li>Cashback em categorias</li>
+        </ul>
+        <span class="product-tier tier-add">ADICIONAL</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(180,78,255,0.12);color:var(--accent4)">📈</div>
+          <div><h3>Capital de Giro</h3><div class="product-cat">Crédito</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Limite pré-aprovado por score</li>
+          <li>Taxa personalizada</li>
+          <li>Prazo de 3 a 36 meses</li>
+          <li>Liberação em até 2h</li>
+        </ul>
+        <span class="product-tier tier-premium">PREMIUM</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(180,78,255,0.12);color:var(--accent4)">🔄</div>
+          <div><h3>Antecipação de Recebíveis</h3><div class="product-cat">Crédito</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Antecipa boletos e NF-e</li>
+          <li>Taxa a partir de 1,2% a.m.</li>
+          <li>Crédito em D+0</li>
+          <li>Simulador integrado no app</li>
+        </ul>
+        <span class="product-tier tier-premium">PREMIUM</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(255,107,53,0.12);color:var(--accent3)">🔗</div>
+          <div><h3>Integração ERP / API</h3><div class="product-cat">Tecnologia</div></div>
+        </div>
+        <ul class="product-features">
+          <li>API REST OpenBanking</li>
+          <li>Webhooks em tempo real</li>
+          <li>SDK para ERPs populares</li>
+          <li>Sandbox para homologação</li>
+        </ul>
+        <span class="product-tier tier-add">ADICIONAL</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(0,229,160,0.12);color:var(--accent)">💹</div>
+          <div><h3>Investimentos PJ</h3><div class="product-cat">Tesouraria</div></div>
+        </div>
+        <ul class="product-features">
+          <li>CDB diário com liquidez</li>
+          <li>LCI / LCA</li>
+          <li>Fundos de renda fixa</li>
+          <li>Rendimento automático do saldo</li>
+        </ul>
+        <span class="product-tier tier-premium">PREMIUM</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(41,121,255,0.12);color:var(--accent2)">📦</div>
+          <div><h3>Folha de Pagamento</h3><div class="product-cat">RH & Payroll</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Upload de CNAB de folha</li>
+          <li>Pagamento em lote</li>
+          <li>Conta salário para funcionários</li>
+          <li>Integração com eSocial</li>
+        </ul>
+        <span class="product-tier tier-add">ADICIONAL</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(255,107,53,0.12);color:var(--accent3)">🛡️</div>
+          <div><h3>Seguros PJ</h3><div class="product-cat">Proteção</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Seguro empresarial</li>
+          <li>D&O — Diretores e Gestores</li>
+          <li>Garantia contratual</li>
+          <li>Cyber seguro</li>
+        </ul>
+        <span class="product-tier tier-premium">PREMIUM</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(0,229,160,0.12);color:var(--accent)">🌍</div>
+          <div><h3>Câmbio & Remessa</h3><div class="product-cat">Internacional</div></div>
+        </div>
+        <ul class="product-features">
+          <li>Câmbio com spread reduzido</li>
+          <li>SWIFT / SEPA</li>
+          <li>Conta em USD / EUR</li>
+          <li>Contrato de câmbio digital</li>
+        </ul>
+        <span class="product-tier tier-premium">PREMIUM</span>
+      </div>
+
+      <div class="product-card">
+        <div class="product-top">
+          <div class="product-icon" style="background:rgba(180,78,255,0.12);color:var(--accent4)">📊</div>
+          <div><h3>Gestão Financeira</h3><div class="product-cat">DRE & Análises</div></div>
+        </div>
+        <ul class="product-features">
+          <li>DRE simplificado automático</li>
+          <li>Fluxo de caixa projetado</li>
+          <li>Categorização inteligente</li>
+          <li>Alertas de anomalia</li>
+        </ul>
+        <span class="product-tier tier-add">ADICIONAL</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== REGRAS ===================== -->
+  <div class="panel" id="panel-regras">
+    <p class="flow-section-title">// regras de negócio por domínio</p>
+    <div class="rules-layout">
+
+      <div>
+        <div class="rules-group" style="margin-bottom:24px">
+          <div class="rules-group-header">
+            <span class="rg-icon">🔐</span>
+            <h3>Compliance & KYC</h3>
+          </div>
+          <div class="rule-item">
+            <h4>Identificação de PEP <span class="severity sev-high">ALTA</span></h4>
+            <p>Sócios com participação ≥ 25% são consultados na lista PEP (Pessoas Expostas Politicamente). Aprovação manual obrigatória.</p>
+          </div>
+          <div class="rule-item">
+            <h4>CNAE Restrito <span class="severity sev-high">ALTA</span></h4>
+            <p>CNAEs relacionados a jogos de azar, câmbio não autorizado e atividades suspeitas bloqueiam a abertura automática.</p>
+            <div class="rule-code">CNAE proibido → Análise compliance
+CNAE sensível → Aprovação manual
+CNAE padrão   → Aprovação automática</div>
+          </div>
+          <div class="rule-item">
+            <h4>Atualização Cadastral <span class="severity sev-med">MÉDIA</span></h4>
+            <p>Revisão obrigatória a cada 24 meses ou em caso de alteração contratual no CNPJ (mudança de sócios, atividade).</p>
+          </div>
+          <div class="rule-item">
+            <h4>Monitoramento COAF <span class="severity sev-high">ALTA</span></h4>
+            <p>Transações acima de R$50.000 ou padrões atípicos geram alerta automático para análise de PLD/FT.</p>
+          </div>
+        </div>
+
+        <div class="rules-group">
+          <div class="rules-group-header">
+            <span class="rg-icon">💳</span>
+            <h3>Limites & Transações</h3>
+          </div>
+          <div class="rule-item">
+            <h4>Pix — Limite Noturno</h4>
+            <p>Entre 20h e 6h, limite máximo por transação é de R$1.000 (BACEN). Configurável para baixo pelo usuário.</p>
+            <div class="rule-code">Diurno:  até R$ 200.000 (default)
+Noturno: até R$ 1.000 (BACEN)</div>
+          </div>
+          <div class="rule-item">
+            <h4>Aprovação Dupla <span class="severity sev-med">MÉDIA</span></h4>
+            <p>Transferências acima do threshold configurado pela empresa exigem aprovação de segundo usuário com permissão de aprovador.</p>
+          </div>
+          <div class="rule-item">
+            <h4>Cooling-off Period</h4>
+            <p>Novos dispositivos ficam sujeitos a período de carência de 24h para aumentos de limite, com notificação por e-mail e SMS.</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="rules-group" style="margin-bottom:24px">
+          <div class="rules-group-header">
+            <span class="rg-icon">📈</span>
+            <h3>Crédito</h3>
+          </div>
+          <div class="rule-item">
+            <h4>Elegibilidade Mínima</h4>
+            <p>Conta ativa há mínimo 90 dias, sem bloqueios regulatórios, score interno ≥ 600, faturamento médio mensal ≥ R$5.000.</p>
+            <div class="rule-code">Score < 400  → Negado
+Score 400-599 → Análise manual
+Score ≥ 600  → Pré-aprovado</div>
+          </div>
+          <div class="rule-item">
+            <h4>Comprometimento de Renda <span class="severity sev-med">MÉDIA</span></h4>
+            <p>Parcelas de crédito não podem comprometer mais de 30% do faturamento médio dos últimos 6 meses.</p>
+          </div>
+          <div class="rule-item">
+            <h4>Revisão de Limite</h4>
+            <p>Limites revisados trimestralmente com base em comportamento de pagamento, crescimento de faturamento e score atualizado.</p>
+          </div>
+          <div class="rule-item">
+            <h4>Inadimplência <span class="severity sev-high">ALTA</span></h4>
+            <p>Atraso > 15 dias: bloqueio de novos créditos. > 30 dias: restrição de produtos. > 60 dias: negativação em bureau.</p>
+          </div>
+        </div>
+
+        <div class="rules-group">
+          <div class="rules-group-header">
+            <span class="rg-icon">🏗️</span>
+            <h3>Operacional & Produto</h3>
+          </div>
+          <div class="rule-item">
+            <h4>Tarifas — Isenção por Tier</h4>
+            <p>TED isento acima de R$5k de volume mensal. Boletos acima de 10 unidades/mês isentos no plano Business.</p>
+          </div>
+          <div class="rule-item">
+            <h4>Encerramento — Prazo Legal</h4>
+            <p>Conta só encerrada após quitação de todos os débitos. Dados retidos por 5 anos conforme Resolução BACEN 4658/2018.</p>
+          </div>
+          <div class="rule-item">
+            <h4>Portabilidade <span class="severity sev-low">BAIXA</span></h4>
+            <p>Chaves Pix e dados de cobrança exportáveis em até 5 dias úteis após solicitação de encerramento.</p>
+          </div>
+          <div class="rule-item">
+            <h4>SLA de Atendimento</h4>
+            <p>Resposta em até 2h para bloqueios involuntários. Resolução de disputas em até 10 dias úteis (BACEN).</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function toggleCard(card) {
+    card.classList.toggle('expanded');
+  }
+</script>
+</body>
+</html>

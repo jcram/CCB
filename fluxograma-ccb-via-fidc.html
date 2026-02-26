@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxograma CCB via FIDC Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #0091ff;
+    --green: #00e676;
+    --yellow: #ffd740;
+    --red: #ff5252;
+    --orange: #ff9100;
+    --purple: #ce93d8;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0d1b33 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-badge {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #000;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+  .header h1 { font-size: 18px; font-weight: 500; color: var(--text); }
+  .header p { font-size: 13px; color: var(--text3); margin-top: 2px; }
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text2);
+  }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 2px;
+  }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  /* PHASES */
+  .phase-section {
+    margin-bottom: 48px;
+  }
+  .phase-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .phase-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--accent);
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+  .phase-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+  .phase-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  /* FLOW ROW */
+  .flow-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  /* NODE */
+  .node {
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .node-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    width: 180px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .node-inner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .node:hover .node-inner {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,212,255,0.1);
+  }
+
+  /* Node types */
+  .node.start .node-inner::before { background: var(--green); }
+  .node.start .node-inner { border-color: rgba(0,230,118,0.3); }
+  .node.process .node-inner::before { background: var(--accent2); }
+  .node.decision .node-inner::before { background: var(--yellow); }
+  .node.decision .node-inner { border-color: rgba(255,215,64,0.3); }
+  .node.error .node-inner::before { background: var(--red); }
+  .node.error .node-inner { border-color: rgba(255,82,82,0.3); background: rgba(255,82,82,0.05); }
+  .node.warning .node-inner::before { background: var(--orange); }
+  .node.warning .node-inner { border-color: rgba(255,145,0,0.3); background: rgba(255,145,0,0.05); }
+  .node.success .node-inner::before { background: var(--green); }
+  .node.success .node-inner { border-color: rgba(0,230,118,0.3); background: rgba(0,230,118,0.05); }
+  .node.external .node-inner::before { background: var(--purple); }
+  .node.external .node-inner { border-color: rgba(206,147,216,0.3); }
+
+  .node-tag {
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+  .node.process .node-tag { color: var(--accent); }
+  .node.decision .node-tag { color: var(--yellow); }
+  .node.error .node-tag { color: var(--red); }
+  .node.warning .node-tag { color: var(--orange); }
+  .node.success .node-tag { color: var(--green); }
+  .node.start .node-tag { color: var(--green); }
+  .node.external .node-tag { color: var(--purple); }
+
+  .node-title {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .node-subtitle {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* ARROW */
+  .arrow {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    margin-top: 32px;
+    flex-shrink: 0;
+  }
+  .arrow-line {
+    height: 1px;
+    width: 24px;
+    background: var(--border);
+  }
+  .arrow-label {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text3);
+    padding: 0 4px;
+    white-space: nowrap;
+  }
+  .arrow-head {
+    width: 0; height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid var(--border);
+  }
+  .arrow.yes .arrow-line, .arrow.yes .arrow-head { background: var(--green); border-left-color: var(--green); }
+  .arrow.yes .arrow-label { color: var(--green); }
+  .arrow.no .arrow-line { background: var(--red); }
+  .arrow.no .arrow-head { border-left-color: var(--red); }
+  .arrow.no .arrow-label { color: var(--red); }
+  .arrow.warn .arrow-line { background: var(--orange); }
+  .arrow.warn .arrow-head { border-left-color: var(--orange); }
+
+  /* DOWN ARROW */
+  .down-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 8px 0;
+  }
+  .down-arrow-line {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+  }
+  .down-arrow-head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid var(--border);
+  }
+  .down-arrow-label {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+
+  /* BRANCH BOX */
+  .branch {
+    display: flex;
+    gap: 0;
+    margin-left: 0;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* RULE CARD */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .rule-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .rule-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .rule-card.rb::before { background: var(--accent2); }
+  .rule-card.rg::before { background: var(--green); }
+  .rule-card.ry::before { background: var(--yellow); }
+  .rule-card.rr::before { background: var(--red); }
+  .rule-card.ro::before { background: var(--orange); }
+  .rule-card.rp::before { background: var(--purple); }
+
+  .rule-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .rule-card.rb .rule-tag { color: var(--accent); }
+  .rule-card.rg .rule-tag { color: var(--green); }
+  .rule-card.ry .rule-tag { color: var(--yellow); }
+  .rule-card.rr .rule-tag { color: var(--red); }
+  .rule-card.ro .rule-tag { color: var(--orange); }
+  .rule-card.rp .rule-tag { color: var(--purple); }
+
+  .rule-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .rule-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .rule-list li {
+    font-size: 12px;
+    color: var(--text2);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .rule-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  /* STATUS BADGES */
+  .status-flow {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    align-items: center;
+  }
+  .status-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .status-arrow-text {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* TOOLTIP */
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e2d45;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 16px;
+    width: 260px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .node:hover .tooltip { display: block; }
+  .tooltip-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .tooltip p {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .tooltip ul {
+    padding-left: 14px;
+  }
+  .tooltip ul li {
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.5;
+    margin-bottom: 3px;
+  }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  /* VERTICAL FLOW */
+  .v-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    max-width: 100%;
+  }
+  .v-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+  .connector-v {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 180px;
+    padding: 0 90px;
+  }
+  .connector-line-v {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+  }
+  .connector-arrow-v {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid var(--border);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* WRAP helper */
+  .overflow-x {
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .nodes-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    flex-wrap: nowrap;
+  }
+
+  .indent {
+    margin-left: 48px;
+  }
+
+  .badge-small {
+    display: inline-block;
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-top: 4px;
+  }
+  .badge-red { background: rgba(255,82,82,0.15); color: var(--red); border: 1px solid rgba(255,82,82,0.3); }
+  .badge-green { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+  .badge-yellow { background: rgba(255,215,64,0.1); color: var(--yellow); border: 1px solid rgba(255,215,64,0.3); }
+  .badge-blue { background: rgba(0,145,255,0.1); color: var(--accent); border: 1px solid rgba(0,145,255,0.3); }
+  .badge-orange { background: rgba(255,145,0,0.1); color: var(--orange); border: 1px solid rgba(255,145,0,0.3); }
+  .badge-purple { background: rgba(206,147,216,0.1); color: var(--purple); border: 1px solid rgba(206,147,216,0.3); }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-badge">CCB · FIDC</div>
+    <div>
+      <h1>Fluxo de Emissão de CCB via FIDC Digital</h1>
+      <p>Mapeamento completo · Happy Path · Unhappy Path · Regras de Negócio</p>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#00e676"></div>Início/Fim/Sucesso</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0091ff"></div>Processo</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffd740"></div>Decisão</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff5252"></div>Erro / Bloqueio</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff9100"></div>Alerta / Retry</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ce93d8"></div>Sistema Externo</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ==================== FASES STATUS ==================== -->
+  <div class="section-label">Estados da CCB ao longo do ciclo</div>
+  <div class="status-flow">
+    <div class="status-badge"><div class="status-dot" style="background:#64748b"></div>RASCUNHO</div>
+    <div class="status-arrow-text">→</div>
+    <div class="status-badge"><div class="status-dot" style="background:#0091ff"></div>EM_ANALISE</div>
+    <div class="status-arrow-text">→</div>
+    <div class="status-badge"><div class="status-dot" style="background:#ffd740"></div>PENDENTE_ASSINATURA</div>
+    <div class="status-arrow-text">→</div>
+    <div class="status-badge"><div class="status-dot" style="background:#ce93d8"></div>AGUARD_REGISTRO</div>
+    <div class="status-arrow-text">→</div>
+    <div class="status-badge"><div class="status-dot" style="background:#00d4ff"></div>REGISTRADA</div>
+    <div class="status-arrow-text">→</div>
+    <div class="status-badge"><div class="status-dot" style="background:#00e676"></div>CEDIDA_FIDC</div>
+    <div class="status-arrow-text">→</div>
+    <div class="status-badge"><div class="status-dot" style="background:#00e676"></div>DESEMBOLSADA</div>
+    <div class="status-arrow-text">→</div>
+    <div class="status-badge"><div class="status-dot" style="background:#ff5252"></div>INADIMPLENTE</div>
+    <span style="color:#64748b; font-size:11px">ou</span>
+    <div class="status-badge"><div class="status-dot" style="background:#00e676"></div>LIQUIDADA</div>
+    <span style="color:#64748b; font-size:11px">ou</span>
+    <div class="status-badge"><div class="status-dot" style="background:#ff9100"></div>CANCELADA</div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ==================== FASE 1: ORIGINAÇÃO ==================== -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <div class="phase-number">FASE 01</div>
+      <div class="phase-title">Originação & Onboarding do Tomador</div>
+      <div class="phase-line"></div>
+    </div>
+    <div class="overflow-x">
+    <div class="nodes-wrap">
+
+      <div class="node start">
+        <div class="node-inner">
+          <div class="node-tag">início</div>
+          <div class="node-title">Tomador solicita crédito</div>
+          <div class="node-subtitle">Canal: App, Web ou API parceiro</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Entrada do Fluxo</div>
+          <p>O tomador (PF ou PJ) inicia a jornada via canal digital. Pode ser originação direta ou via parceiro/correspondente.</p>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Coleta de dados cadastrais</div>
+          <div class="node-subtitle">CPF/CNPJ, nome, endereço, renda, finalidade</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Dados Coletados</div>
+          <ul><li>Dados pessoais / societários</li><li>Comprovante de renda / faturamento</li><li>Finalidade do crédito</li><li>Valor e prazo solicitados</li><li>Dados bancários para desembolso</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node external">
+        <div class="node-inner">
+          <div class="node-tag">externo</div>
+          <div class="node-title">KYC / Validação de Identidade</div>
+          <div class="node-subtitle">Biometria facial + prova de vida + doc OCR</div>
+          <div class="badge-small badge-purple">Serpro / Bureaus</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Validação KYC</div>
+          <p>Verificação obrigatória conforme BACEN / COAF.</p>
+          <ul><li>OCR de documento (RG, CNH, Passaporte)</li><li>Liveness / prova de vida</li><li>Match biométrico (face vs doc)</li><li>Consulta Serpro / Receita Federal</li><li>Listas de sanções (OFAC, ONU, PEP)</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">KYC aprovado?</div>
+          <div class="node-subtitle">Identidade confirmada e sem restrições</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node external">
+        <div class="node-inner">
+          <div class="node-tag">externo</div>
+          <div class="node-title">Consulta Bureaus de Crédito</div>
+          <div class="node-subtitle">Serasa, SPC, SCR BACEN</div>
+          <div class="badge-small badge-purple">Async · SLA 3s</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Bureaus de Crédito</div>
+          <ul><li>Score de crédito (Serasa/SPC)</li><li>Histórico de inadimplência</li><li>Dívidas ativas e protestos</li><li>SCR — Sistema de Crédito do BACEN</li><li>Processos judiciais (PJ)</li><li>Situação cadastral Receita Federal</li></ul>
+        </div>
+      </div>
+
+    </div>
+    </div>
+
+    <!-- KYC error branch -->
+    <div style="display:flex; align-items:center; gap:0; margin-top:8px; flex-wrap:wrap;">
+      <!-- alinha com o nó de decisão KYC (4º nó = 3 nós × (180+24+8) + offset) -->
+      <div style="width: 628px; flex-shrink:0;"></div>
+      <div class="arrow no" style="margin-top:0;"><div class="arrow-line"></div><div class="arrow-label">NÃO</div><div class="arrow-head"></div></div>
+      <div class="node error">
+        <div class="node-inner">
+          <div class="node-tag">bloqueio</div>
+          <div class="node-title">KYC Reprovado</div>
+          <div class="node-subtitle">Notificação ao tomador + log de motivo</div>
+          <div class="badge-small badge-red">STATUS: CANCELADA</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Motivos de Reprovação KYC</div>
+          <ul><li>Documento inválido ou expirado</li><li>Biometria sem match</li><li>CPF/CNPJ em lista de sanções (PEP/OFAC)</li><li>Dados divergentes na Receita Federal</li><li>Suspeita de fraude (device fingerprint)</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FASE 2: ANÁLISE DE CRÉDITO ==================== -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <div class="phase-number">FASE 02</div>
+      <div class="phase-title">Análise de Crédito & Precificação</div>
+      <div class="phase-line"></div>
+    </div>
+    <div class="overflow-x">
+    <div class="nodes-wrap">
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Motor de Crédito (Score)</div>
+          <div class="node-subtitle">Cálculo de risco e limite aprovado</div>
+          <div class="badge-small badge-blue">STATUS: EM_ANALISE</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Motor de Crédito</div>
+          <p>Regras do FIDC e da política interna de crédito.</p>
+          <ul><li>Score bureaus + modelo interno</li><li>Relação parcela/renda (máx. 30% renda líquida)</li><li>Comprometimento de renda já existente</li><li>Capacidade de pagamento (DSCR)</li><li>Garantias oferecidas</li><li>Segmento do tomador (PF/PJ)</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Crédito aprovado?</div>
+          <div class="node-subtitle">Score ≥ threshold e dentro da política</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Precificação da Operação</div>
+          <div class="node-subtitle">Taxa, IOF, CET, prazo, parcelas</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Regras de Precificação</div>
+          <ul><li>Taxa de juros: CDI+ spread baseado no risco</li><li>IOF proporcional ao prazo (Decreto 6.306/07)</li><li>CET calculado conforme Res. 3.517 BACEN</li><li>Sistema de amortização: SAC, PRICE ou Bullet</li><li>TAC e demais encargos (se aplicável)</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Verificar Capacidade do FIDC</div>
+          <div class="node-subtitle">PL disponível e limite de concentração</div>
+          <div class="badge-small badge-purple">Interno FIDC</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Elegibilidade FIDC (Res. CVM 175)</div>
+          <ul><li>PL suficiente para adquirir o crédito</li><li>Limite de concentração por devedor (máx. 3% PL)</li><li>Limite por setor econômico</li><li>Razão mínima cota sênior/subordinada</li><li>Rating mínimo do FIDC (se exigido)</li><li>Enquadramento na política do fundo</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">FIDC elegível para esta CCB?</div>
+          <div class="node-subtitle">Critérios de concentração e PL</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Gera Proposta Comercial</div>
+          <div class="node-subtitle">Apresenta condições ao tomador</div>
+          <div class="badge-small badge-blue">STATUS: RASCUNHO</div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+
+    <!-- Error nodes below -->
+    <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+      <div class="node error">
+        <div class="node-inner">
+          <div class="node-tag">bloqueio</div>
+          <div class="node-title">Crédito Negado</div>
+          <div class="node-subtitle">Score abaixo do mínimo ou política de crédito</div>
+          <div class="badge-small badge-red">STATUS: CANCELADA</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Motivos de Recusa</div>
+          <ul><li>Score < 400 (threshold configurável)</li><li>Parcela > 30% da renda líquida</li><li>Inadimplência ativa > 60 dias</li><li>CNPJ em situação irregular na RF</li><li>Restrição de crédito ativa</li></ul>
+        </div>
+      </div>
+      <div class="node warning">
+        <div class="node-inner">
+          <div class="node-tag">alerta</div>
+          <div class="node-title">FIDC sem capacidade</div>
+          <div class="node-subtitle">Operação em fila de espera ou redirecionamento</div>
+          <div class="badge-small badge-orange">RETRY ou REDIRECT</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Ações Alternativas</div>
+          <ul><li>Aguardar resgate de cotas do FIDC</li><li>Redirecionar para outro veículo de crédito</li><li>Reduzir valor da operação para caber no limite</li><li>Notificar gestor do FIDC</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FASE 3: EMISSÃO DO TÍTULO ==================== -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <div class="phase-number">FASE 03</div>
+      <div class="phase-title">Emissão, Formalização e Assinatura da CCB</div>
+      <div class="phase-line"></div>
+    </div>
+    <div class="overflow-x">
+    <div class="nodes-wrap">
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Tomador aceita proposta</div>
+          <div class="node-subtitle">Consentimento digital registrado + timestamp</div>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Geração do Instrumento CCB</div>
+          <div class="node-subtitle">Template parametrizado · Dados da Lei 10.931/04</div>
+          <div class="badge-small badge-blue">Lei 10.931/2004</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Campos Obrigatórios CCB (Art. 29)</div>
+          <ul><li>Denominação "Cédula de Crédito Bancário"</li><li>Identificação do credor (IF ou SCD)</li><li>Identificação do devedor</li><li>Valor principal, taxa e CET</li><li>Datas e valores de cada parcela</li><li>Garantias (se houver)</li><li>Cláusula de multa e mora</li><li>Local de pagamento</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Envio para Assinatura Digital</div>
+          <div class="node-subtitle">Assinatura eletrônica (ICP-Brasil ou outro)</div>
+          <div class="badge-small badge-blue">STATUS: PEND_ASSINATURA</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Assinatura Digital</div>
+          <ul><li>Assinatura eletrônica qualificada (ICP-Brasil) para valores acima do threshold</li><li>Assinatura avançada (OTP/biometria) para valores menores</li><li>Tempo máximo para assinar: configurável (ex. 48h)</li><li>Expiração gera cancelamento automático da proposta</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Assinado no prazo?</div>
+          <div class="node-subtitle">Tomador assinou dentro do SLA</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Validação da Assinatura</div>
+          <div class="node-subtitle">Verificação certificado + hash do documento</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Validação</div>
+          <ul><li>Verificação da cadeia de certificação ICP-Brasil</li><li>Integridade do hash do documento (SHA-256)</li><li>Timestamp certificado</li><li>Registro no log imutável (auditoria)</li></ul>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Assinatura válida?</div>
+          <div class="node-subtitle">Certificado e hash íntegros</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node external">
+        <div class="node-inner">
+          <div class="node-tag">externo</div>
+          <div class="node-title">Registro em Registradora</div>
+          <div class="node-subtitle">B3 ou CERC — Res. BACEN 5.016/2022</div>
+          <div class="badge-small badge-purple">STATUS: AGUARD_REGISTRO</div>
+        </div>
+        <div class="tooltip">
+          <div class="tooltip-title">Registro Obrigatório</div>
+          <ul><li>Obrigatório pela Res. BACEN 5.016/2022</li><li>Registradora: B3 ou CERC</li><li>Protocolo de registro gerado</li><li>Número único de identificação da CCB</li><li>SLA de confirmação: até 2h úteis</li></ul>
+        </div>
+      </div>
+
+    </div>
+    </div>
+
+    <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+      <div class="node warning">
+        <div class="node-inner">
+          <div class="node-tag">alerta</div>
+          <div class="node-title">Prazo de assinatura expirado</div>
+          <div class="node-subtitle">Proposta cancelada · Reprocesso necessário</div>
+          <div class="badge-small badge-orange">STATUS: CANCELADA</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Expiração</div><ul><li>Notificação ao tomador via push/SMS/email</li><li>Possibilidade de regerar proposta (nova análise)</li><li>Log de expiração para auditoria</li></ul></div>
+      </div>
+      <div class="node error">
+        <div class="node-inner">
+          <div class="node-tag">erro</div>
+          <div class="node-title">Assinatura inválida</div>
+          <div class="node-subtitle">Certificado revogado ou documento alterado</div>
+          <div class="badge-small badge-red">FRAUDE? → Alerta</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Assinatura Inválida</div><ul><li>Certificado digital revogado</li><li>Hash do documento não confere (adulteração)</li><li>Ação: bloquear operação + acionar fraud team</li><li>Notificar tomador para reassinatura (se não fraude)</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FASE 4: REGISTRO E CESSÃO AO FIDC ==================== -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <div class="phase-number">FASE 04</div>
+      <div class="phase-title">Registro, Confirmação & Cessão ao FIDC</div>
+      <div class="phase-line"></div>
+    </div>
+    <div class="overflow-x">
+    <div class="nodes-wrap">
+
+      <div class="node external">
+        <div class="node-inner">
+          <div class="node-tag">externo</div>
+          <div class="node-title">Confirmação do Registro</div>
+          <div class="node-subtitle">Protocolo recebido da Registradora</div>
+          <div class="badge-small badge-blue">STATUS: REGISTRADA</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Confirmação</div><ul><li>Número de protocolo único da CCB</li><li>Carimbo de data/hora do registro</li><li>Dados gravados no ledger da registradora</li></ul></div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Registro confirmado?</div>
+          <div class="node-subtitle">Registradora retornou sucesso</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Instrução de Cessão ao FIDC</div>
+          <div class="node-subtitle">Contrato de cessão gerado automaticamente</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Cessão de Crédito</div><ul><li>Contrato de Cessão de Crédito gerado</li><li>Cedente: IF/SCD originadora</li><li>Cessionária: FIDC</li><li>Notificação ao devedor sobre cessão (obrigatória)</li><li>Validação de elegibilidade final pelo FIDC</li></ul></div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node external">
+        <div class="node-inner">
+          <div class="node-tag">externo</div>
+          <div class="node-title">Aprovação do Administrador do FIDC</div>
+          <div class="node-subtitle">Verificação dos critérios de elegibilidade finais</div>
+          <div class="badge-small badge-purple">Gestor/Admin FIDC</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Elegibilidade Final FIDC</div><ul><li>CCB livre de ônus e pendências</li><li>Devedor não está em lista negra do fundo</li><li>Documentação completa e válida</li><li>Checklist do regulamento do FIDC</li></ul></div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">FIDC aprova cessão?</div>
+          <div class="node-subtitle">Critérios do regulamento atendidos</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node success">
+        <div class="node-inner">
+          <div class="node-tag">sucesso</div>
+          <div class="node-title">CCB Cedida ao FIDC</div>
+          <div class="node-subtitle">Direito creditório incorporado ao patrimônio do fundo</div>
+          <div class="badge-small badge-green">STATUS: CEDIDA_FIDC</div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+
+    <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+      <div class="node error">
+        <div class="node-inner">
+          <div class="node-tag">erro</div>
+          <div class="node-title">Falha no Registro</div>
+          <div class="node-subtitle">Registradora rejeitou · Retry automático</div>
+          <div class="badge-small badge-orange">MAX 3 RETRIES</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Falha de Registro</div><ul><li>Timeout de resposta da registradora</li><li>Dados inconsistentes (rejeição)</li><li>Retry automático com backoff exponencial</li><li>Após 3 tentativas: alerta operacional manual</li><li>CCB permanece em AGUARD_REGISTRO</li></ul></div>
+      </div>
+      <div class="node error">
+        <div class="node-inner">
+          <div class="node-tag">bloqueio</div>
+          <div class="node-title">FIDC rejeita cessão</div>
+          <div class="node-subtitle">CCB não elegível — retorna à originadora</div>
+          <div class="badge-small badge-red">STATUS: CANCELADA</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Rejeição FIDC</div><ul><li>Devedor já concentrado além do limite</li><li>Vencimento da CCB fora do prazo do fundo</li><li>Rating de crédito abaixo do mínimo do regulamento</li><li>Garantia não aceita pelo fundo</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FASE 5: DESEMBOLSO ==================== -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <div class="phase-number">FASE 05</div>
+      <div class="phase-title">Desembolso & Liquidação ao Tomador</div>
+      <div class="phase-line"></div>
+    </div>
+    <div class="overflow-x">
+    <div class="nodes-wrap">
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">FIDC emite ordem de pagamento</div>
+          <div class="node-subtitle">Instrução de TED/PIX para a IF originadora</div>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Validação dos dados bancários</div>
+          <div class="node-subtitle">Conta do tomador verificada (DICT/PIX)</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Validação Bancária</div><ul><li>Consulta DICT (Diretório de Identificadores) via BACEN</li><li>Chave PIX ou dados da conta TED</li><li>Confirma titularidade da conta = CPF/CNPJ do tomador</li><li>Bloqueio se conta for de terceiros</li></ul></div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Dados bancários válidos?</div>
+          <div class="node-subtitle">Conta pertence ao tomador</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node external">
+        <div class="node-inner">
+          <div class="node-tag">externo</div>
+          <div class="node-title">Transferência PIX/TED</div>
+          <div class="node-subtitle">Desembolso para conta do tomador</div>
+          <div class="badge-small badge-purple">SPB / BACEN</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Desembolso</div><ul><li>PIX: disponível 24/7 — liquidação imediata</li><li>TED: D+0 em dias úteis, horário limite 17h</li><li>Desconto de IOF, TAC e outras taxas na origem</li><li>Comprovante gerado e enviado ao tomador</li></ul></div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Transferência confirmada?</div>
+          <div class="node-subtitle">SPB retornou sucesso</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node success">
+        <div class="node-inner">
+          <div class="node-tag">sucesso</div>
+          <div class="node-title">Crédito Desembolsado</div>
+          <div class="node-subtitle">Tomador recebeu os recursos</div>
+          <div class="badge-small badge-green">STATUS: DESEMBOLSADA</div>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Agenda de Cobranças</div>
+          <div class="node-subtitle">Geração de boletos/débito automático</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Agenda de Cobranças</div><ul><li>Boletos gerados para cada parcela</li><li>Registro de boletos na CIP/B3</li><li>Configuração de débito automático (se autorizado)</li><li>Notificações D-5 e D-1 antes do vencimento</li></ul></div>
+      </div>
+
+    </div>
+    </div>
+
+    <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+      <div class="node error">
+        <div class="node-inner">
+          <div class="node-tag">erro</div>
+          <div class="node-title">Conta inválida / de terceiro</div>
+          <div class="node-subtitle">Solicitação de nova conta ao tomador</div>
+          <div class="badge-small badge-orange">PENDÊNCIA</div>
+        </div>
+      </div>
+      <div class="node error">
+        <div class="node-inner">
+          <div class="node-tag">erro</div>
+          <div class="node-title">Falha na transferência</div>
+          <div class="node-subtitle">Retry · Banco rejeitou ou timeout SPB</div>
+          <div class="badge-small badge-red">MAX 3 RETRIES</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Falha de Transferência</div><ul><li>Conta encerrada ou bloqueada</li><li>Banco recebedor com instabilidade</li><li>Timeout do SPB</li><li>Retry automático em 30 min</li><li>Após 3 tentativas: alerta operacional</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FASE 6: COBRANÇA E LIQUIDAÇÃO ==================== -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <div class="phase-number">FASE 06</div>
+      <div class="phase-title">Cobrança, Inadimplência & Liquidação</div>
+      <div class="phase-line"></div>
+    </div>
+    <div class="overflow-x">
+    <div class="nodes-wrap">
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Vencimento da Parcela</div>
+          <div class="node-subtitle">Job automático verifica liquidação D+0</div>
+        </div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Parcela paga?</div>
+          <div class="node-subtitle">Baixa do boleto ou débito confirmado</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node process">
+        <div class="node-inner">
+          <div class="node-tag">processo</div>
+          <div class="node-title">Baixa e Repasse ao FIDC</div>
+          <div class="node-subtitle">Liquidação registrada · Recursos repassados</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Repasse ao FIDC</div><ul><li>Valor principal + juros separados por competência</li><li>Atualização do NAV (cota) do FIDC</li><li>Registro na escrituração do fundo</li><li>Relatório enviado ao administrador</li></ul></div>
+      </div>
+
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node decision">
+        <div class="node-inner">
+          <div class="node-tag">decisão</div>
+          <div class="node-title">Última parcela?</div>
+          <div class="node-subtitle">Toda a dívida foi liquidada</div>
+        </div>
+      </div>
+
+      <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+      <div class="node success">
+        <div class="node-inner">
+          <div class="node-tag">fim</div>
+          <div class="node-title">CCB Liquidada</div>
+          <div class="node-subtitle">Baixa automática na registradora</div>
+          <div class="badge-small badge-green">STATUS: LIQUIDADA</div>
+        </div>
+        <div class="tooltip"><div class="tooltip-title">Encerramento</div><ul><li>Baixa automática na B3/CERC</li><li>Comprovante de quitação emitido ao tomador</li><li>Liberação de eventuais garantias</li><li>Atualização do histórico de crédito do tomador</li></ul></div>
+      </div>
+
+    </div>
+    </div>
+
+    <!-- Inadimplência branch -->
+    <div style="margin-top:24px;">
+      <div class="phase-header" style="margin-bottom:16px;">
+        <div style="font-size:12px; font-family:'IBM Plex Mono',monospace; color:var(--red); letter-spacing:1px;">⚠ UNHAPPY PATH — INADIMPLÊNCIA</div>
+        <div class="phase-line"></div>
+      </div>
+      <div class="overflow-x">
+      <div class="nodes-wrap">
+
+        <div class="node warning">
+          <div class="node-inner">
+            <div class="node-tag">alerta</div>
+            <div class="node-title">Parcela não paga (D+1)</div>
+            <div class="node-subtitle">Cobrança ativa iniciada</div>
+          </div>
+        </div>
+
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+        <div class="node process">
+          <div class="node-inner">
+            <div class="node-tag">processo</div>
+            <div class="node-title">Régua de Cobrança Automática</div>
+            <div class="node-subtitle">D+1 SMS · D+3 Email · D+5 Notificação push</div>
+          </div>
+          <div class="tooltip"><div class="tooltip-title">Régua de Cobrança</div><ul><li>D+1: SMS de aviso</li><li>D+3: E-mail com link de pagamento</li><li>D+5: Push notification + WhatsApp</li><li>D+10: Ligação (se disponível)</li><li>D+15: Oferta de renegociação</li></ul></div>
+        </div>
+
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+        <div class="node decision">
+          <div class="node-inner">
+            <div class="node-tag">decisão</div>
+            <div class="node-title">Pagou até D+30?</div>
+            <div class="node-subtitle">Atraso < 30 dias (multa + mora)</div>
+          </div>
+        </div>
+
+        <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+        <div class="node process">
+          <div class="node-inner">
+            <div class="node-tag">processo</div>
+            <div class="node-title">Pagamento com encargos</div>
+            <div class="node-subtitle">Multa 2% + mora 1%/mês pro-rata</div>
+          </div>
+        </div>
+
+        <div class="arrow no"><div class="arrow-line"></div><div class="arrow-label">NÃO</div><div class="arrow-head"></div></div>
+
+        <div class="node error">
+          <div class="node-inner">
+            <div class="node-tag">inadimplência</div>
+            <div class="node-title">Atraso > 30 dias</div>
+            <div class="node-subtitle">Marcação de inadimplência nos bureaus</div>
+            <div class="badge-small badge-red">STATUS: INADIMPLENTE</div>
+          </div>
+          <div class="tooltip"><div class="tooltip-title">Inadimplência > 30d</div><ul><li>Negativação Serasa/SPC (após 60 dias)</li><li>Vencimento antecipado de parcelas (se previsto)</li><li>Bloqueio para novas operações no sistema</li><li>Transferência para carteira de cobrança especializada</li></ul></div>
+        </div>
+
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+        <div class="node process">
+          <div class="node-inner">
+            <div class="node-tag">processo</div>
+            <div class="node-title">Negociação / Renegociação</div>
+            <div class="node-subtitle">Oferta de parcelamento de dívida ou desconto</div>
+          </div>
+        </div>
+
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+        <div class="node decision">
+          <div class="node-inner">
+            <div class="node-tag">decisão</div>
+            <div class="node-title">Renegociação aceita?</div>
+            <div class="node-subtitle">Acordo firmado digitalmente</div>
+          </div>
+        </div>
+
+        <div class="arrow yes"><div class="arrow-line"></div><div class="arrow-label">SIM</div><div class="arrow-head"></div></div>
+
+        <div class="node process">
+          <div class="node-inner">
+            <div class="node-tag">processo</div>
+            <div class="node-title">Nova CCB / Aditivo de Contrato</div>
+            <div class="node-subtitle">Novo instrumento ou aditivo à CCB original</div>
+            <div class="badge-small badge-blue">Volta ao fluxo</div>
+          </div>
+        </div>
+
+        <div class="arrow no"><div class="arrow-line"></div><div class="arrow-label">NÃO</div><div class="arrow-head"></div></div>
+
+        <div class="node error">
+          <div class="node-inner">
+            <div class="node-tag">execução</div>
+            <div class="node-title">Execução Extrajudicial / Judicial</div>
+            <div class="node-subtitle">CCB é título executivo extrajudicial (Art. 28)</div>
+            <div class="badge-small badge-red">STATUS: EM_EXECUÇÃO</div>
+          </div>
+          <div class="tooltip"><div class="tooltip-title">Execução da CCB</div><ul><li>CCB tem força executiva extrajudicial (Lei 10.931/04)</li><li>Execução pode ser iniciada diretamente sem reconhecimento de dívida</li><li>Excussão de garantias (alienação fiduciária, aval)</li><li>Repasse de perda ao FIDC (PDD — Provisão Devedores Duvidosos)</li></ul></div>
+        </div>
+
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== REGRAS DE NEGÓCIO ==================== -->
+  <hr class="section-divider">
+  <div class="section-label">Regras de Negócio Consolidadas</div>
+  <div class="rules-grid">
+
+    <div class="rule-card rb">
+      <div class="rule-tag">📋 Conformidade Legal</div>
+      <div class="rule-title">Requisitos Legais da CCB</div>
+      <ul class="rule-list">
+        <li>Regulamentada pela Lei 10.931/2004</li>
+        <li>Registro obrigatório na B3 ou CERC (Res. BACEN 5.016/2022)</li>
+        <li>CET deve ser informado (Res. 3.517 BACEN)</li>
+        <li>Emissão eletrônica exige certificação digital (MP 2.200-2/2001)</li>
+        <li>Emissora deve ser IF, SCD ou SCM autorizada pelo BACEN</li>
+      </ul>
+    </div>
+
+    <div class="rule-card ry">
+      <div class="rule-tag">🏦 Política de Crédito</div>
+      <div class="rule-title">Concessão de Crédito</div>
+      <ul class="rule-list">
+        <li>Score mínimo: configurável por segmento (ex: ≥ 400 Serasa)</li>
+        <li>Comprometimento de renda: máx. 30% da renda líquida</li>
+        <li>Prazo mínimo: 3 meses · Prazo máximo: 60 meses</li>
+        <li>Valor mínimo: R$ 500 · Valor máximo: conforme política do FIDC</li>
+        <li>Vedado para CPF com inadimplência ativa > 60 dias</li>
+        <li>Vedado para CNPJ em situação irregular na Receita Federal</li>
+      </ul>
+    </div>
+
+    <div class="rule-card rp">
+      <div class="rule-tag">🏛 Elegibilidade FIDC</div>
+      <div class="rule-title">Critérios do Fundo (Res. CVM 175)</div>
+      <ul class="rule-list">
+        <li>Concentração máxima por devedor: 3% do PL do fundo</li>
+        <li>Razão mínima cota sênior/subordinada mantida</li>
+        <li>CCB deve ser líquida, certa e exigível</li>
+        <li>Prazo da CCB não pode superar o prazo do fundo</li>
+        <li>Rating mínimo da operação (se regulamento exigir)</li>
+        <li>Relatório mensal de risco para o administrador fiduciário</li>
+      </ul>
+    </div>
+
+    <div class="rule-card rg">
+      <div class="rule-tag">🔐 KYC / Compliance</div>
+      <div class="rule-title">Prevenção à Lavagem de Dinheiro</div>
+      <ul class="rule-list">
+        <li>KYC obrigatório para todo tomador (Circ. BACEN 3.978/2020)</li>
+        <li>Checagem em listas PEP, OFAC, ONU e COAF</li>
+        <li>Comunicação ao COAF para operações suspeitas</li>
+        <li>Renovação do KYC: PF a cada 2 anos, PJ anual</li>
+        <li>Monitoramento de comportamento transacional contínuo</li>
+      </ul>
+    </div>
+
+    <div class="rule-card ro">
+      <div class="rule-tag">⚡ SLAs Operacionais</div>
+      <div class="rule-title">Tempos de Resposta</div>
+      <ul class="rule-list">
+        <li>KYC: resposta em até 30 segundos (real-time)</li>
+        <li>Motor de crédito: decisão em até 3 segundos</li>
+        <li>Registro na B3/CERC: confirmação em até 2h úteis</li>
+        <li>Desembolso PIX: imediato após cessão confirmada</li>
+        <li>TED: até D+0 se instrução antes das 17h</li>
+        <li>Expiração da proposta para assinatura: 48h (configurável)</li>
+      </ul>
+    </div>
+
+    <div class="rule-card rr">
+      <div class="rule-tag">🚨 Gestão de Erros</div>
+      <div class="rule-title">Políticas de Retry e Falha</div>
+      <ul class="rule-list">
+        <li>Falha de registro: retry automático 3x com backoff exponencial</li>
+        <li>Falha de desembolso: retry a cada 30 min, máx. 3x</li>
+        <li>Timeout bureaus: usar cache de 24h ou score interno</li>
+        <li>Falha de assinatura inválida: alerta de fraude automático</li>
+        <li>Após 3 falhas consecutivas: escalonamento para operações</li>
+        <li>Rollback: cancelar CCB se pagamento não confirmado em 24h</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <hr class="section-divider">
+  <div style="text-align:center; padding:16px 0 32px; color:var(--text3); font-size:12px; font-family:'IBM Plex Mono',monospace;">
+    Fluxo baseado em Lei 10.931/2004 · Res. BACEN 5.016/2022 · Res. CVM 175/2022 · Circ. BACEN 3.978/2020 · MP 2.200-2/2001
+  </div>
+
+</div>
+</body>
+</html>

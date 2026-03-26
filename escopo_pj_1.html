@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escopo PJ — APP vs IBK</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F7F4;
+    --surface: #FFFFFF;
+    --surface-alt: #F0EFEC;
+    --text: #1A1A18;
+    --text-muted: #6B6B66;
+    --text-hint: #9C9C96;
+    --border: #E2E1DC;
+    --border-light: #EEEDEA;
+    --accent: #1D9E75;
+    --accent-bg: #E8F6F0;
+    --accent-dark: #0F6E56;
+    --danger: #D85A30;
+    --danger-bg: #FEF0EA;
+    --info: #378ADD;
+    --info-bg: #E6F1FB;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --new-badge: #1D9E75;
+    --new-badge-bg: #E8F6F0;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 40px;
+  }
+
+  .header-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    background: var(--accent-bg);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .header p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 560px;
+  }
+
+  /* Summary Cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .summary-card .label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-hint);
+    margin-bottom: 6px;
+  }
+
+  .summary-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+
+  .summary-card.app .value { color: var(--purple); }
+  .summary-card.ibk .value { color: var(--info); }
+  .summary-card.both .value { color: var(--accent); }
+  .summary-card.app-only .value { color: var(--danger); }
+  .summary-card.ibk-only .value { color: var(--info); }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-dark);
+  }
+
+  .filter-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* Table */
+  .table-wrapper {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 1fr 80px 80px;
+    padding: 14px 20px;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-header span {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-hint);
+  }
+
+  .table-header span:not(:first-child) {
+    text-align: center;
+  }
+
+  .cat-section { border-bottom: 1px solid var(--border-light); }
+  .cat-section:last-child { border-bottom: none; }
+
+  .cat-title {
+    display: grid;
+    grid-template-columns: 1fr 80px 80px;
+    padding: 12px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+  }
+
+  .cat-title:hover {
+    background: var(--surface-alt);
+  }
+
+  .cat-title-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chevron {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+  }
+
+  .chevron svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--text-hint);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cat-section.collapsed .chevron {
+    transform: rotate(-90deg);
+  }
+
+  .cat-title .count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-hint);
+    text-align: center;
+  }
+
+  .cat-body {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.25s ease;
+    max-height: 2000px;
+    opacity: 1;
+  }
+
+  .cat-section.collapsed .cat-body {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .func-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 80px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-light);
+    align-items: center;
+    transition: background 0.1s ease;
+  }
+
+  .func-row:last-child { border-bottom: none; }
+  .func-row:hover { background: var(--surface-alt); }
+
+  .func-name {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .func-check {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .check-yes {
+    color: var(--accent);
+  }
+
+  .check-no {
+    color: var(--border);
+    font-weight: 400;
+  }
+
+  .check-note {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-hint);
+    margin-top: 1px;
+  }
+
+  .new-badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--new-badge);
+    background: var(--new-badge-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-hint);
+  }
+
+  .footer span {
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Progress bar mini */
+  .progress-bar {
+    display: flex;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+    background: var(--border-light);
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .summary-grid { grid-template-columns: repeat(3, 1fr); }
+    .header h1 { font-size: 24px; }
+    .container { padding: 24px 16px 60px; }
+    .table-header, .cat-title, .func-row {
+      grid-template-columns: 1fr 60px 60px;
+      padding-left: 14px; padding-right: 14px;
+    }
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; }
+    .filter-bar { display: none; }
+    .summary-card { box-shadow: none; border: 1px solid #ddd; }
+    .table-wrapper { box-shadow: none; }
+    .func-row:hover { background: transparent; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-label">Escopo de produto</div>
+    <h1>Conta PJ — APP vs IBK</h1>
+    <p>Mapeamento completo das funcionalidades disponíveis para pessoa jurídica no aplicativo mobile e no internet banking.</p>
+  </div>
+
+  <div class="summary-grid" id="summary"></div>
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;">
+    <div class="filter-bar" id="filters" style="margin-bottom: 0;"></div>
+    <div style="display: flex; gap: 6px;">
+      <button class="filter-btn" onclick="expandAll()" title="Expandir todas">▼ Expandir</button>
+      <button class="filter-btn" onclick="collapseAll()" title="Recolher todas">▲ Recolher</button>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span>Funcionalidade</span>
+      <span>APP</span>
+      <span>IBK</span>
+    </div>
+    <div id="content"></div>
+  </div>
+
+  <div class="footer">
+    <span>Gerado em <script>document.write(new Date().toLocaleDateString('pt-BR'))</script></span>
+  </div>
+</div>
+
+<script>
+const data = [
+  { cat: "Onboarding PJ", items: [
+    { f: "Definição do tipo de empresa (MEI, ME, LTDA, SA...)", app: true, ibk: true },
+    { f: "Coleta dos dados da empresa", app: true, ibk: true },
+    { f: "Coleta dos endereços da empresa", app: true, ibk: true },
+    { f: "Coleta dos dados do responsável - Dados pessoais", app: true, ibk: true },
+    { f: "Coleta dos dados do responsável - Endereço", app: true, ibk: true },
+    { f: "Prova de vida - Documento (CNH/RG)", app: true, ibk: true, appNote: "câmera", ibkNote: "upload" },
+    { f: "Prova de vida - Selfie estática", app: true, ibk: true, appNote: "câmera", ibkNote: "upload" },
+    { f: "Listagem dos sócios", app: true, ibk: true },
+    { f: "Prova de vida dos sócios com mais de 20%", app: true, ibk: true },
+  ]},
+  { cat: "Controle de usuário", items: [
+    { f: "Multi usuário/operador (mais de usuário acessa a conta)", app: false, ibk: true },
+    { f: "Multi perfil (contas a pagar, receber, admin...)", app: false, ibk: true },
+  ]},
+  { cat: "Alçadas", items: [
+    { f: "Alçadas", app: false, ibk: true, isNew: true },
+  ]},
+  { cat: "Controle de acesso", items: [
+    { f: "Login por meio de usuário e senha", app: true, ibk: true },
+    { f: "Recuperação de senha (com envio de código por SMS)", app: true, ibk: true },
+    { f: "Registro de biometria (dedo ou facial)", app: true, ibk: false },
+    { f: "Cancelamento de biometria (dentro da área logada)", app: true, ibk: false },
+    { f: "Login por biometria (dedo ou facial)", app: true, ibk: false },
+    { f: "Logout", app: true, ibk: true },
+    { f: "Cancelamento de conta", app: true, ibk: true },
+  ]},
+  { cat: "Home", items: [
+    { f: "Visualização do saldo atual", app: true, ibk: true },
+    { f: "Visualização do extrato (último 7 dias)", app: true, ibk: true },
+    { f: "Atalhos para principais funções (PIX, TED, boleto, notificações)", app: true, ibk: true },
+  ]},
+  { cat: "PIX DICT/Chaves", items: [
+    { f: "Listagem de chaves PIX (registradas)", app: true, ibk: true },
+    { f: "Criação de chave PIX (aleatória, CPF/CNPJ, e-mail e celular)", app: true, ibk: true },
+    { f: "Gestão de status de chave PIX (pendente, criada, cancelada e portabilidade)", app: true, ibk: true },
+    { f: "Cancelamento de chave", app: true, ibk: true },
+    { f: "Solicitação de portabilidade de chave", app: true, ibk: true },
+  ]},
+  { cat: "PIX Pagamento", items: [
+    { f: "Pagamento por chave (aleatória, CPF/CNPJ, e-mail e celular)", app: true, ibk: true },
+    { f: "Pagamento por código copia e cola", app: true, ibk: true },
+    { f: "Pagamento por leitura de QR Code (dinâmico e fixo)", app: true, ibk: false },
+    { f: "Pagamento sem chave (agência, conta, CPF/CNPJ e banco)", app: true, ibk: true },
+    { f: "Processo de estorno (pelo extrato)", app: true, ibk: true },
+  ]},
+  { cat: "PIX Cobrança", items: [
+    { f: "Geração de QR Code (com seleção da chave de destino)", app: true, ibk: true },
+  ]},
+  { cat: "PIX Limite", items: [
+    { f: "Visualização dos limites diurno e noturno", app: true, ibk: true },
+    { f: "Visualização dos limites por transação e período", app: true, ibk: true },
+  ]},
+  { cat: "Extrato", items: [
+    { f: "Visualização do extrato (home)", app: true, ibk: true },
+    { f: "Relatório de extrato com filtro (entrada, saída e agendamentos) (filtro por data início e término)", app: true, ibk: true },
+    { f: "Exportação do extrato", app: true, ibk: true },
+  ]},
+  { cat: "Transferências", items: [
+    { f: "Transferência TED", app: true, ibk: true },
+    { f: "Transferência entre mesmo banco (P2P / TEF)", app: true, ibk: true },
+    { f: "Transferência PIX (por chave ou ag/cc)", app: true, ibk: true },
+  ]},
+  { cat: "Pagamento em lote", items: [
+    { f: "Pagamento em lote", app: false, ibk: true, isNew: true },
+  ]},
+  { cat: "Recebimento em lote", items: [
+    { f: "Recebimento em lote", app: false, ibk: true, isNew: true },
+  ]},
+  { cat: "Notificações", items: [
+    { f: "Listagem de notificações", app: true, ibk: false },
+    { f: "Transação realizada de transferência (TED/PIX/P2P)", app: true, ibk: false },
+    { f: "Transação realizada de pagamento de boleto", app: true, ibk: false },
+    { f: "Cartão desbloqueado", app: true, ibk: false },
+    { f: "Cartão bloqueado", app: true, ibk: false },
+    { f: "Notificação de abertura de conta", app: true, ibk: false },
+    { f: "Notificação de cancelamento de conta", app: true, ibk: false },
+    { f: "Notificação customizada e enviada pelo backoffice (ou firebase)", app: true, ibk: false },
+  ]},
+  { cat: "Emissão de Boleto (cash-in)", items: [
+    { f: "Emissão de boleto de cash-in (apenas com valor a ser recebido)", app: true, ibk: true },
+    { f: "Pagamento de boleto de cash-in", app: true, ibk: true },
+  ]},
+  { cat: "Pagamento de boleto", items: [
+    { f: "Leitura de boleto por código de barras (câmera ou linha digitável)", app: true, ibk: true },
+    { f: "Visualização dos dados do boleto (apenas conta de consumo com linha digitável)", app: true, ibk: true },
+    { f: "Pagamento/confirmação de boleto", app: true, ibk: true },
+  ]},
+  { cat: "Agendamentos", items: [
+    { f: "Agendamento de PIX", app: true, ibk: true },
+    { f: "Agendamento de TED", app: true, ibk: true },
+    { f: "Agendamento de transferência entre mesmo banco (P2P / TEF)", app: true, ibk: true },
+    { f: "Agendamento de pagamento de Boleto", app: true, ibk: true },
+    { f: "Visualização de todos os agendamentos no extrato", app: true, ibk: true },
+    { f: "Cancelamento do agendamento (pelo extrato)", app: true, ibk: true },
+  ]},
+  { cat: "Comprovantes", items: [
+    { f: "Pagamento de boleto", app: true, ibk: true },
+    { f: "Transferência TED", app: true, ibk: true },
+    { f: "Transferência PIX", app: true, ibk: true },
+    { f: "Compartilhamento do comprovante por PNG", app: true, ibk: true },
+    { f: "Transferência entre contas do mesmo banco (P2P/TEF)", app: true, ibk: true },
+  ]},
+  { cat: "FAQ", items: [
+    { f: "Segmentação de FAQ para usuários cadastrados e não cadastrados", app: true, ibk: false },
+    { f: "Listagem de categorias", app: true, ibk: false },
+    { f: "Listagem de subcategorias", app: true, ibk: false },
+    { f: "Listagem de itens de dúvida (abaixo de subcategorias)", app: true, ibk: false },
+  ]},
+  { cat: "SAC", items: [
+    { f: "Apresentação das informações para SAC (e-mail, link ou celular)", app: true, ibk: false },
+  ]},
+  { cat: "Dados da conta", items: [
+    { f: "Exibição dos dados cadastrais (sem edição)", app: true, ibk: true },
+  ]},
+  { cat: "Alterações de senha", items: [
+    { f: "Alteração da \"minha senha de PIN\" (com envio de código por SMS)", app: true, ibk: true },
+    { f: "Alteração da \"minha senha de login\" (com envio de código por SMS)", app: true, ibk: true },
+  ]},
+  { cat: "Imposto de renda", items: [
+    { f: "Relatório de imposto de renda (integração do arquivo com o baas/core)", app: true, ibk: false },
+  ]},
+  { cat: "Outras funções", items: [
+    { f: "Visualização dos termos de uso", app: true, ibk: true },
+    { f: "Visualização da política de privacidade", app: true, ibk: true },
+    { f: "Convidar amigos (mensagem pré-pronta compartilhada por mídias sociais e WhatsApp)", app: true, ibk: false },
+  ]},
+];
+
+let activeFilter = 'all';
+
+function getAllItems() {
+  return data.flatMap(d => d.items);
+}
+
+function renderSummary() {
+  const all = getAllItems();
+  const stats = [
+    { label: 'Total APP', value: all.filter(i => i.app).length, cls: 'app', color: '#534AB7' },
+    { label: 'Total IBK', value: all.filter(i => i.ibk).length, cls: 'ibk', color: '#378ADD' },
+    { label: 'Ambos', value: all.filter(i => i.app && i.ibk).length, cls: 'both', color: '#1D9E75' },
+    { label: 'Só APP', value: all.filter(i => i.app && !i.ibk).length, cls: 'app-only', color: '#D85A30' },
+    { label: 'Só IBK', value: all.filter(i => !i.app && i.ibk).length, cls: 'ibk-only', color: '#378ADD' },
+  ];
+
+  document.getElementById('summary').innerHTML = stats.map(s => `
+    <div class="summary-card ${s.cls}">
+      <div class="label">${s.label}</div>
+      <div class="value">${s.value}</div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${Math.round(s.value / all.length * 100)}%; background: ${s.color};"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFilters() {
+  const filters = [
+    { id: 'all', label: 'Todas' },
+    { id: 'both', label: 'APP + IBK' },
+    { id: 'app_only', label: 'Só APP' },
+    { id: 'ibk_only', label: 'Só IBK' },
+  ];
+  document.getElementById('filters').innerHTML = filters.map(f =>
+    `<button class="filter-btn ${activeFilter === f.id ? 'active' : ''}" onclick="setFilter('${f.id}')">${f.label}</button>`
+  ).join('');
+}
+
+function setFilter(id) {
+  activeFilter = id;
+  renderFilters();
+  renderTable();
+}
+
+function matchFilter(item) {
+  if (activeFilter === 'both') return item.app && item.ibk;
+  if (activeFilter === 'app_only') return item.app && !item.ibk;
+  if (activeFilter === 'ibk_only') return !item.app && item.ibk;
+  return true;
+}
+
+function renderCheck(val, note) {
+  if (!val) return '<span class="check-no">—</span>';
+  let html = '<span class="check-yes">✓</span>';
+  if (note) html += `<span class="check-note">${note}</span>`;
+  return html;
+}
+
+function renderTable() {
+  let html = '';
+  data.forEach((cat, idx) => {
+    const filtered = cat.items.filter(matchFilter);
+    if (filtered.length === 0) return;
+
+    const catApp = cat.items.filter(i => i.app).length;
+    const catIbk = cat.items.filter(i => i.ibk).length;
+
+    html += `<div class="cat-section" id="cat-${idx}">`;
+    html += `<div class="cat-title" onclick="toggleCat(${idx})">
+      <span class="cat-title-text">
+        <span class="chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        ${cat.cat}
+      </span>
+      <span class="count">${catApp}</span>
+      <span class="count">${catIbk}</span>
+    </div>`;
+
+    html += `<div class="cat-body">`;
+    filtered.forEach(item => {
+      const badge = item.isNew ? '<span class="new-badge">novo</span>' : '';
+      html += `<div class="func-row">
+        <div class="func-name">${item.f}${badge}</div>
+        <div class="func-check">${renderCheck(item.app, item.appNote)}</div>
+        <div class="func-check">${renderCheck(item.ibk, item.ibkNote)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+
+    html += `</div>`;
+  });
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function toggleCat(idx) {
+  const el = document.getElementById('cat-' + idx);
+  if (el) el.classList.toggle('collapsed');
+}
+
+function expandAll() {
+  document.querySelectorAll('.cat-section').forEach(el => el.classList.remove('collapsed'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.cat-section').forEach(el => el.classList.add('collapsed'));
+}
+
+renderSummary();
+renderFilters();
+renderTable();
+</script>
+
+</body>
+</html>

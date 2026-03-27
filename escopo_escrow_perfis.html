@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matriz de Permissões — Conta Escrow</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F7F4;
+    --surface: #FFFFFF;
+    --surface-alt: #F0EFEC;
+    --text: #1A1A18;
+    --text-muted: #6B6B66;
+    --text-hint: #9C9C96;
+    --border: #E2E1DC;
+    --border-light: #EEEDEA;
+    --accent: #1D9E75;
+    --accent-bg: #E8F6F0;
+    --accent-dark: #0F6E56;
+    --danger: #D85A30;
+    --danger-bg: #FEF0EA;
+    --warn: #C07A00;
+    --warn-bg: #FFF4E0;
+    --info: #378ADD;
+    --info-bg: #E6F1FB;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header { margin-bottom: 40px; }
+
+  .header-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    background: var(--accent-bg);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .header p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 620px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .legend-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+  }
+
+  .badge-sim { background: var(--accent-bg); color: var(--accent-dark); }
+  .badge-nao { background: var(--danger-bg); color: var(--danger); }
+  .badge-solicita { background: var(--warn-bg); color: var(--warn); }
+  .badge-na { background: var(--surface-alt); color: var(--text-hint); }
+  .badge-header { background: #1A1A18; color: #fff; }
+
+  /* Summary Cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .summary-card .sc-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-hint);
+    margin-bottom: 4px;
+  }
+
+  .summary-card .sc-value {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+  }
+
+  .summary-card .sc-sub {
+    font-size: 12px;
+    color: var(--text-hint);
+  }
+
+  .sc-consulta .sc-value { color: var(--info); }
+  .sc-movimentacao .sc-value { color: var(--warn); }
+  .sc-master .sc-value { color: var(--accent); }
+
+  .progress-bar {
+    margin-top: 10px;
+    height: 4px;
+    background: var(--border-light);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    color: var(--text-hint);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .filter-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent-dark); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Table */
+  .table-wrapper {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 1fr 110px 130px 90px;
+    padding: 14px 20px;
+    background: #1A1A18;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-header span {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+  }
+
+  .table-header span:not(:first-child) { text-align: center; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    justify-content: flex-end;
+  }
+
+  .ctrl-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .ctrl-btn:hover { background: var(--surface-alt); }
+
+  /* Cat section */
+  .cat-section { border-bottom: 1px solid var(--border-light); }
+  .cat-section:last-child { border-bottom: none; }
+
+  .cat-title {
+    display: grid;
+    grid-template-columns: 1fr 110px 130px 90px;
+    padding: 12px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+  }
+
+  .cat-title:hover { background: var(--surface-alt); }
+
+  .cat-title-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chevron {
+    display: inline-block;
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+  }
+
+  .chevron svg {
+    width: 16px; height: 16px;
+    stroke: var(--text-hint);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cat-section.collapsed .chevron { transform: rotate(-90deg); }
+  .cat-section.collapsed .cat-body { display: none; }
+
+  .count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-hint);
+    text-align: center;
+    align-self: center;
+  }
+
+  /* Func row */
+  .func-row {
+    display: grid;
+    grid-template-columns: 1fr 110px 130px 90px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.1s ease;
+    align-items: center;
+  }
+
+  .func-row:last-child { border-bottom: none; }
+  .func-row:hover { background: #FAFAF8; }
+
+  .func-name {
+    font-size: 13.5px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 12px;
+  }
+
+  .func-check {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Permission badges */
+  .perm {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 12px;
+    letter-spacing: 0.2px;
+  }
+
+  .perm-sim { background: var(--accent-bg); color: var(--accent-dark); }
+  .perm-nao { background: var(--danger-bg); color: var(--danger); }
+  .perm-solicita { background: var(--warn-bg); color: var(--warn); }
+  .perm-na { background: var(--surface-alt); color: var(--text-hint); }
+  .perm-dash { color: var(--text-hint); font-size: 16px; }
+
+  /* Category header row (app-level) */
+  .func-row.is-cat-header {
+    background: #F8F7F4;
+    pointer-events: none;
+  }
+
+  .func-row.is-cat-header .func-name {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-hint);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-label">Matriz de Permissões</div>
+    <h1>Conta Escrow — Perfis de Acesso</h1>
+    <p>Mapeamento de quais funcionalidades cada perfil de operador tem permissão na conta escrow: Consulta, Movimentação e Master.</p>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="legend-item"><span class="legend-badge badge-sim">Sim</span> Permitido</span>
+    <span class="legend-item"><span class="legend-badge badge-nao">Não</span> Sem permissão</span>
+    <span class="legend-item"><span class="legend-badge badge-solicita">Solicita</span> Requer aprovação</span>
+    <span class="legend-item"><span class="legend-badge badge-na">N/A</span> Não aplicável</span>
+    <span class="legend-item"><span class="legend-badge badge-header" style="font-size:13px; padding: 2px 8px;">—</span> Categoria / Seção</span>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-grid" id="summary"></div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <span class="filter-label">Filtrar por:</span>
+    <div id="filters"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="ctrl-btn" onclick="expandAll()">Expandir tudo</button>
+    <button class="ctrl-btn" onclick="collapseAll()">Recolher tudo</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span>Funcionalidade</span>
+      <span>Consulta</span>
+      <span>Movimentação</span>
+      <span>Master</span>
+    </div>
+    <div id="content"></div>
+  </div>
+
+</div>
+
+<script>
+// Values: 'sim' | 'nao' | 'solicita' | 'na' | '-'
+// '-' = category header row (section title inside the matrix)
+const data = [
+  { cat: "Onboarding", items: [
+    { f: "[APP][IBK] Onboarding", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Criação de conta PJ", consulta: 'na', movimentacao: 'na', master: 'na' },
+    { f: "Criação de conta PF", consulta: 'na', movimentacao: 'na', master: 'na' },
+  ]},
+  { cat: "Gestão de Chave DICT", items: [
+    { f: "[APP][IBK] Gestão de Chave Dict", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Criação de chave aleatória", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Criação de chave CPF/CNPJ", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Criação de chave celular", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Criação de chave e-mail", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Portabilidade de chave", consulta: 'nao', movimentacao: 'nao', master: 'nao' },
+    { f: "Reivindicação de posse", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+  ]},
+  { cat: "Pix Transacional", items: [
+    { f: "[APP][IBK] Pix transacional", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Emissão de QRCode Dinâmico", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Emissão de QRCode Estático", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Pix agendado", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+    { f: "Estorno", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+    { f: "Pix copia e cola", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+    { f: "Pagamento de QRCode", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+  ]},
+  { cat: "Home", items: [
+    { f: "[APP][IBK] Home", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Saldo", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Extrato", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Comprovante", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+  ]},
+  { cat: "Gestão de Pagamento", items: [
+    { f: "[APP][IBK] Gestão de pagamento", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Pagamento de Boleto", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+    { f: "Boleto Receber", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Boleto Pagamento [a receber]", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+  ]},
+  { cat: "Limite Pix", items: [
+    { f: "[APP][IBK] Limite Pix", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Diurno (solicitar)", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Noturno (solicitar)", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+  ]},
+  { cat: "Transferência", items: [
+    { f: "[APP][IBK] Transferência", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "TED", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+    { f: "P2P", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+  ]},
+  { cat: "Notificações e Aprovações", items: [
+    { f: "[APP] Notificações", consulta: 'nao', movimentacao: 'sim', master: 'sim' },
+    { f: "[IBK] Aprovação de Alçada para conta PJ", consulta: 'nao', movimentacao: 'nao', master: 'sim' },
+    { f: "[IBK] Multi usuário para conta PJ", consulta: 'na', movimentacao: 'na', master: 'na' },
+  ]},
+  { cat: "Perfil", items: [
+    { f: "[APP][IBK] Perfil", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Redefinir senha", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Ajuda (FAQ)", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Cancelamento de conta", consulta: 'nao', movimentacao: 'nao', master: 'nao' },
+    { f: "Imposto de renda - Informe de rendimento", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Perfil (Dados da conta / Dados do usuário)", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+    { f: "Foto de perfil", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+  ]},
+  { cat: "Gestão de Pagamento CNAB / CSV", items: [
+    { f: "[IBK] Gestão de Pagamento CNAB <> CSV", consulta: '-', movimentacao: '-', master: '-', isHeader: true },
+    { f: "Contas à pagar para conta PJ — Apenas IBK", consulta: 'nao', movimentacao: 'solicita', master: 'sim' },
+    { f: "Contas à receber para conta PJ — Apenas IBK", consulta: 'sim', movimentacao: 'sim', master: 'sim' },
+  ]},
+];
+
+let activeFilter = 'all';
+
+function getAllItems() {
+  return data.flatMap(d => d.items.filter(i => !i.isHeader));
+}
+
+function renderSummary() {
+  const all = getAllItems();
+  const total = all.length;
+  const stats = [
+    { label: 'Consulta — Sim', value: all.filter(i => i.consulta === 'sim').length, cls: 'sc-consulta', color: '#378ADD', sub: 'funcionalidades permitidas' },
+    { label: 'Movimentação — Sim/Solicita', value: all.filter(i => i.movimentacao === 'sim' || i.movimentacao === 'solicita').length, cls: 'sc-movimentacao', color: '#C07A00', sub: 'permitidas ou com aprovação' },
+    { label: 'Master — Sim', value: all.filter(i => i.master === 'sim').length, cls: 'sc-master', color: '#1D9E75', sub: 'acesso total' },
+  ];
+
+  document.getElementById('summary').innerHTML = stats.map(s => `
+    <div class="summary-card ${s.cls}">
+      <div class="sc-label">${s.label}</div>
+      <div class="sc-value">${s.value}</div>
+      <div class="sc-sub">de ${total} ${s.sub}</div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${Math.round(s.value / total * 100)}%; background: ${s.color};"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFilters() {
+  const filters = [
+    { id: 'all', label: 'Todas' },
+    { id: 'sim_all', label: 'Todos têm acesso' },
+    { id: 'master_only', label: 'Só Master' },
+    { id: 'solicita', label: 'Requer aprovação' },
+    { id: 'nenhum', label: 'Nenhum tem acesso' },
+  ];
+  document.getElementById('filters').innerHTML = filters.map(f =>
+    `<button class="filter-btn ${activeFilter === f.id ? 'active' : ''}" onclick="setFilter('${f.id}')">${f.label}</button>`
+  ).join('');
+}
+
+function setFilter(id) {
+  activeFilter = id;
+  renderFilters();
+  renderTable();
+}
+
+function matchFilter(item) {
+  if (item.isHeader) return true;
+  if (activeFilter === 'sim_all') return item.consulta === 'sim' && item.movimentacao === 'sim' && item.master === 'sim';
+  if (activeFilter === 'master_only') return item.master === 'sim' && item.consulta !== 'sim' && item.movimentacao !== 'sim';
+  if (activeFilter === 'solicita') return item.movimentacao === 'solicita';
+  if (activeFilter === 'nenhum') return item.consulta === 'nao' && item.movimentacao === 'nao' && item.master === 'nao';
+  return true;
+}
+
+function renderPerm(val) {
+  if (val === '-') return '<span class="perm-dash">—</span>';
+  if (val === 'sim') return '<span class="perm perm-sim">Sim</span>';
+  if (val === 'nao') return '<span class="perm perm-nao">Não</span>';
+  if (val === 'solicita') return '<span class="perm perm-solicita">Solicita</span>';
+  if (val === 'na') return '<span class="perm perm-na">N/A</span>';
+  return '<span class="perm-dash">—</span>';
+}
+
+function renderTable() {
+  let html = '';
+  data.forEach((cat, idx) => {
+    const filtered = cat.items.filter(matchFilter);
+    const visibleItems = filtered.filter(i => !i.isHeader);
+    if (visibleItems.length === 0) return;
+
+    const simC = cat.items.filter(i => !i.isHeader && i.consulta === 'sim').length;
+    const simM = cat.items.filter(i => !i.isHeader && (i.movimentacao === 'sim' || i.movimentacao === 'solicita')).length;
+    const simMaster = cat.items.filter(i => !i.isHeader && i.master === 'sim').length;
+    const total = cat.items.filter(i => !i.isHeader).length;
+
+    html += `<div class="cat-section" id="cat-${idx}">`;
+    html += `<div class="cat-title" onclick="toggleCat(${idx})">
+      <span class="cat-title-text">
+        <span class="chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        ${cat.cat}
+      </span>
+      <span class="count">${simC}/${total}</span>
+      <span class="count">${simM}/${total}</span>
+      <span class="count">${simMaster}/${total}</span>
+    </div>`;
+
+    html += `<div class="cat-body">`;
+    filtered.forEach(item => {
+      if (item.isHeader) {
+        html += `<div class="func-row is-cat-header">
+          <div class="func-name">${item.f}</div>
+          <div class="func-check">${renderPerm(item.consulta)}</div>
+          <div class="func-check">${renderPerm(item.movimentacao)}</div>
+          <div class="func-check">${renderPerm(item.master)}</div>
+        </div>`;
+      } else {
+        html += `<div class="func-row">
+          <div class="func-name">${item.f}</div>
+          <div class="func-check">${renderPerm(item.consulta)}</div>
+          <div class="func-check">${renderPerm(item.movimentacao)}</div>
+          <div class="func-check">${renderPerm(item.master)}</div>
+        </div>`;
+      }
+    });
+    html += `</div></div>`;
+  });
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function toggleCat(idx) {
+  const el = document.getElementById('cat-' + idx);
+  if (el) el.classList.toggle('collapsed');
+}
+
+function expandAll() {
+  document.querySelectorAll('.cat-section').forEach(el => el.classList.remove('collapsed'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.cat-section').forEach(el => el.classList.add('collapsed'));
+}
+
+renderSummary();
+renderFilters();
+renderTable();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Épico Emissor de CCB PJ — Documentação de Requisitos</title>
+<meta name="description" content="Documentação técnica de requisitos do épico Emissor de CCB PJ para SCD.">
+<style>
+/* ============================================================
+   Tokens
+   ============================================================ */
+:root{
+  --bg:#ffffff;
+  --surface:#f7f9fb;
+  --surface-2:#eef2f6;
+  --line:#e3e8ee;
+  --line-2:#cfd8e2;
+  --ink:#0d1620;
+  --ink-2:#33414f;
+  --muted:#6a7885;
+  --muted-2:#8b98a5;
+  --accent:#12456e;
+  --accent-2:#1a6194;
+  --accent-soft:#eaf1f7;
+  --warn:#8a5200;
+  --warn-soft:#fdf6ea;
+  --warn-line:#e8d5b0;
+  --ok:#15683f;
+  --radius:10px;
+  --radius-sm:6px;
+  --shadow:0 1px 2px rgba(13,22,32,.04), 0 1px 12px rgba(13,22,32,.04);
+  --sans:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --c-clicksign:#5b3fa8;
+  --c-b3:#0b6b78;
+  --c-bacen:#8a5200;
+  --c-matera:#1d4ed8;
+  --c-fundos:#15683f;
+  --c-cobranca:#a11043;
+  --c-interno:#64717e;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4{margin:0;line-height:1.25;letter-spacing:-.015em;font-weight:600}
+p{margin:0}
+a{color:var(--accent-2);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-radius:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+/* ============================================================
+   Topbar
+   ============================================================ */
+.topbar{
+  position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);
+  backdrop-filter:saturate(1.6) blur(8px);border-bottom:1px solid var(--line);
+}
+.topbar .wrap{display:flex;align-items:center;gap:20px;height:58px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:650;font-size:13.5px;letter-spacing:-.01em;white-space:nowrap}
+.brand .mark{width:20px;height:20px;flex:none;color:var(--accent)}
+.navlinks{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks a{
+  padding:6px 8px;border-radius:var(--radius-sm);color:var(--ink-2);
+  font-size:12.5px;font-weight:500;white-space:nowrap;text-decoration:none;
+}
+.navlinks a:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
+.navlinks a.active{background:var(--accent-soft);color:var(--accent)}
+.searchbox{position:relative;flex:none}
+.searchbox svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--muted-2);pointer-events:none}
+#q{
+  width:180px;padding:7px 28px 7px 29px;border:1px solid var(--line-2);border-radius:var(--radius-sm);
+  font:inherit;font-size:13px;background:#fff;color:var(--ink);transition:width .18s ease,border-color .18s ease;
+}
+#q:focus{width:230px;border-color:var(--accent-2);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+#qclear{
+  position:absolute;right:5px;top:50%;transform:translateY(-50%);border:0;background:transparent;
+  color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:3px 4px;border-radius:4px;display:none;
+}
+#qclear:hover{background:var(--surface-2);color:var(--ink)}
+#qclear.on{display:block}
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.hero{border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfcfe 0%,#fff 100%)}
+.hero .wrap{padding-top:52px;padding-bottom:0}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;
+}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--accent);border-radius:2px}
+.hero h1{font-size:40px;letter-spacing:-.03em;max-width:20ch}
+.hero .sub{margin-top:14px;font-size:17px;color:var(--ink-2);max-width:66ch;line-height:1.55}
+.hero .meta{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--muted)}
+.hero .meta b{color:var(--ink-2);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);margin-top:40px;border-top:1px solid var(--line)}
+.kpi{padding:22px 24px 26px;border-right:1px solid var(--line)}
+.kpi:first-child{padding-left:0}
+.kpi:last-child{border-right:0}
+.kpi .n{font-size:32px;font-weight:650;letter-spacing:-.035em;color:var(--accent);font-variant-numeric:tabular-nums}
+.kpi .l{margin-top:2px;font-size:12.5px;color:var(--muted);line-height:1.4}
+
+/* ============================================================
+   Sections
+   ============================================================ */
+section{padding:60px 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{margin-bottom:28px;max-width:74ch}
+.sec-num{
+  font:600 11.5px/1 var(--mono);letter-spacing:.1em;color:var(--muted-2);
+  display:block;margin-bottom:10px;
+}
+.sec-head h2{font-size:25px;letter-spacing:-.025em}
+.sec-head .lead{margin-top:10px;color:var(--muted);font-size:14.5px;line-height:1.6}
+
+/* ============================================================
+   Stakeholders
+   ============================================================ */
+.stake{display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;
+}
+.card.primary{border-color:var(--line-2);background:var(--surface);box-shadow:var(--shadow)}
+.card h3{font-size:15px;margin-bottom:6px}
+.card .role{font-size:11px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.card p{color:var(--ink-2);font-size:14px}
+.entlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.entlist li{padding:11px 0;border-top:1px solid var(--line);font-size:14px;color:var(--ink-2);position:relative;padding-left:15px}
+.entlist li:first-child{border-top:0;padding-top:2px}
+.entlist li:first-child .dot{top:10px}
+.entlist .dot{position:absolute;left:0;top:19px;width:5px;height:5px;border-radius:50%;background:var(--line-2)}
+
+/* ============================================================
+   Flow
+   ============================================================ */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:12px}
+.step{
+  display:block;background:#fff;border:1px solid var(--line);border-top-width:3px;
+  border-radius:var(--radius);padding:13px 15px 13px;cursor:pointer;text-align:left;
+  font:inherit;color:inherit;position:relative;
+  transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.step:hover{border-color:var(--accent-2);box-shadow:var(--shadow)}
+.step.on{border-color:var(--accent) !important;background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.step .idx{display:block;font:650 10.5px/1 var(--mono);color:var(--muted-2);letter-spacing:.06em}
+.step.on .idx{color:var(--accent-2)}
+.step .name{display:block;margin-top:8px;font-size:13.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.step .refs{display:block;margin-top:9px;font:500 10.5px/1.6 var(--mono);color:var(--muted);letter-spacing:.01em}
+.step .refs span{white-space:nowrap}
+.band{
+  margin-top:14px;display:flex;align-items:center;gap:14px;padding:13px 18px;
+  border:1px dashed var(--warn-line);background:var(--warn-soft);border-radius:var(--radius);
+}
+.band .tag{font:650 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--warn);white-space:nowrap}
+.band .txt{font-size:13.5px;color:var(--ink-2)}
+.band .txt b{font-weight:600;color:var(--ink)}
+.flow-hint{margin-top:14px;font-size:12.5px;color:var(--muted-2)}
+
+/* ============================================================
+   Toolbar + chips
+   ============================================================ */
+.toolbar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+  padding:14px 0 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:26px;
+}
+.tb-label{font:650 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2);margin-right:-4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  border:1px solid var(--line-2);background:#fff;color:var(--ink-2);border-radius:999px;
+  padding:5px 12px;font:500 12.5px/1.2 var(--sans);cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:border-color .15s,background .15s,color .15s;
+}
+.chip:hover{border-color:var(--muted-2)}
+.chip .swatch{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none;opacity:.85}
+.chip .lbl{color:var(--ink-2)}
+.chip .n{font:600 11px var(--mono);opacity:.6}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip.on .lbl{color:#fff}
+.chip.on .swatch{background:#fff;opacity:.9}
+.chip.on .n{opacity:.7}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--radius-sm);overflow:hidden}
+.seg button{
+  border:0;background:#fff;color:var(--ink-2);font:500 12.5px var(--sans);padding:6px 12px;cursor:pointer;
+}
+.seg button+button{border-left:1px solid var(--line-2)}
+.seg button.on{background:var(--accent);color:#fff}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+#count{font:500 12.5px var(--sans);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+#reset{border:0;background:transparent;color:var(--accent-2);font:500 12.5px var(--sans);cursor:pointer;padding:5px 7px;border-radius:5px;display:none}
+#reset:hover{background:var(--accent-soft)}
+#reset.on{display:inline-block}
+
+/* ============================================================
+   Requirement cards
+   ============================================================ */
+.group{margin-bottom:34px}
+.group:last-child{margin-bottom:0}
+.group-head{display:flex;align-items:baseline;gap:12px;padding-bottom:10px;margin-bottom:16px;border-bottom:2px solid var(--ink)}
+.group-head h3{font-size:15.5px;letter-spacing:-.015em}
+.group-head .gn{font:600 11px var(--mono);color:var(--muted-2);letter-spacing:.06em;margin-left:auto}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.rf{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px 16px;
+  display:flex;flex-direction:column;gap:9px;transition:border-color .15s ease,box-shadow .15s ease;
+  scroll-margin-top:100px;
+}
+.rf:hover{border-color:var(--line-2);box-shadow:var(--shadow)}
+.rf.flash{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rf-top{display:flex;align-items:center;gap:10px}
+.rf-id{
+  font:650 11px var(--mono);letter-spacing:.04em;color:var(--accent);background:var(--accent-soft);
+  padding:3px 7px;border-radius:4px;text-decoration:none;flex:none;
+}
+.rf-id:hover{background:var(--accent);color:#fff;text-decoration:none}
+.rf-mod{font:500 11px var(--sans);color:var(--muted-2);margin-left:auto;text-align:right;letter-spacing:.01em}
+.rf h4{font-size:15px;letter-spacing:-.015em;line-height:1.35}
+.rf .why{font-size:13.8px;color:var(--ink-2);line-height:1.62}
+.rf .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:5px}
+.tag{
+  display:inline-flex;align-items:center;gap:6px;font:500 11.5px var(--sans);
+  border:1px solid currentColor;border-radius:999px;padding:3px 9px;background:#fff;
+}
+.tag .swatch{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.tag span{color:var(--ink-2)}
+.tag.none{color:var(--line-2)}
+.tag.none span{color:var(--muted-2)}
+.empty{
+  display:none;text-align:center;padding:56px 24px;border:1px dashed var(--line-2);border-radius:var(--radius);
+  color:var(--muted);background:var(--surface);
+}
+.empty.on{display:block}
+.empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:5px;font-weight:600}
+mark{background:#fdf0a8;color:inherit;padding:0 1px;border-radius:2px}
+
+/* ============================================================
+   Atores nomeados
+   ============================================================ */
+.named{display:block;margin-top:5px;font-size:12.5px;color:var(--muted)}
+.named b{font-weight:600;color:var(--accent)}
+.actors{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.actor{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:15px 17px 16px}
+.actor .role{font:650 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2);margin-bottom:10px}
+.actor ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.actor li{
+  font-size:12.5px;font-weight:500;border:1px solid var(--line-2);border-radius:999px;
+  padding:4px 11px;color:var(--ink-2);background:var(--surface);
+}
+.actor li.lead{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600}
+.actor p{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.55}
+
+/* ============================================================
+   Jornada por raias
+   ============================================================ */
+.swim-scroll{
+  overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);
+  background:#fff;position:relative;
+}
+.swim{display:grid;grid-template-columns:168px repeat(8,minmax(188px,1fr));min-width:1670px}
+.swim>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.swim>div.last-col{border-right:0}
+.swim>div.last-row{border-bottom:0}
+.swim-corner{
+  position:sticky;left:0;z-index:3;background:var(--surface);padding:12px 15px;
+  font:650 10.5px/1.4 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted-2);
+  display:flex;align-items:flex-end;border-bottom-color:var(--line-2) !important;
+}
+.swim-ph{
+  background:var(--surface);padding:12px 15px;border-bottom-color:var(--line-2) !important;
+}
+.swim-ph .pn{
+  display:flex;align-items:center;gap:7px;
+  font:650 10px/1 var(--mono);letter-spacing:.08em;color:var(--muted-2);
+}
+.swim-ph .pn svg{width:11px;height:11px;color:var(--line-2);margin-left:-3px}
+.swim-ph .pt{margin-top:7px;font-size:12.8px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.swim-lane{
+  position:sticky;left:0;z-index:2;background:#fff;padding:14px 15px;
+  border-right-color:var(--line-2) !important;
+}
+.swim-lane .ln{font-size:13px;font-weight:650;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.swim-lane .ln .swatch{width:8px;height:8px;border-radius:2px;flex:none}
+.swim-lane .lw{margin-top:4px;font-size:11.5px;color:var(--muted);line-height:1.4;padding-left:16px}
+.swim-cell{padding:10px 11px;min-height:64px}
+.swim-cell.alt{background:#fcfdfe}
+.sbox{
+  border-left:3px solid var(--line-2);background:var(--surface);border-radius:0 6px 6px 0;
+  padding:9px 11px 10px;
+}
+.sbox p{font-size:12.4px;line-height:1.5;color:var(--ink-2)}
+.sbox .rfs{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.sbox .rfs a{
+  font:650 9.5px/1 var(--mono);letter-spacing:.03em;color:var(--accent);background:#fff;
+  border:1px solid var(--line-2);padding:3px 5px;border-radius:3px;text-decoration:none;
+}
+.sbox .rfs a:hover{background:var(--accent);border-color:var(--accent);color:#fff;text-decoration:none}
+.sbox.out{
+  border-left-style:dashed;border-left-color:var(--warn-line);
+  background:var(--warn-soft);
+}
+.sbox.out p{color:var(--muted)}
+.sbox .outtag{
+  display:inline-block;margin-bottom:6px;font:650 9.5px/1 var(--mono);letter-spacing:.07em;
+  text-transform:uppercase;color:var(--warn);border:1px solid var(--warn-line);border-radius:3px;padding:3px 6px;
+}
+.swim-hint{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--muted-2);align-items:center}
+.swim-hint .drag{display:flex;align-items:center;gap:6px;color:var(--accent-2);font-weight:500}
+.swim-hint .drag svg{width:13px;height:13px}
+.swim-print{display:none}
+.swim-print .pph{padding:14px 0;border-top:1px solid var(--line)}
+.swim-print .pph:first-child{border-top:0}
+.swim-print .pph h4{font-size:12px;margin-bottom:8px}
+.swim-print .pph h4 span{font:650 9.5px var(--mono);letter-spacing:.07em;color:var(--muted-2);margin-right:8px}
+.swim-print .prow{display:flex;gap:12px;padding:4px 0;font-size:11px;line-height:1.5}
+.swim-print .pact{width:132px;flex:none;font-weight:600;color:var(--accent)}
+.swim-print .prow.out .pact,.swim-print .prow.out .ptxt{color:var(--muted)}
+.swim-print .prf{font:650 9px var(--mono);color:var(--muted-2);margin-left:6px;white-space:nowrap}
+
+/* ============================================================
+   Requisito fora de escopo
+   ============================================================ */
+.rf.out{background:var(--surface);border-style:dashed;border-color:var(--warn-line)}
+.rf.out h4{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-2);text-decoration-thickness:1px}
+.rf.out .why{color:var(--muted)}
+.rf.out .rf-id{background:var(--surface-2);color:var(--muted)}
+.badge-out{
+  font:650 9.5px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--warn);
+  background:var(--warn-soft);border:1px solid var(--warn-line);padding:4px 7px;border-radius:4px;white-space:nowrap;
+}
+.scope-note{
+  font-size:12.6px;line-height:1.55;color:var(--ink-2);background:var(--warn-soft);
+  border-left:2px solid var(--warn-line);padding:9px 11px;border-radius:0 5px 5px 0;
+}
+.scope-note b{color:var(--warn);font-weight:600}
+.note{
+  margin-top:16px;padding:13px 16px;border-left:3px solid var(--line-2);background:var(--surface);
+  font-size:13px;color:var(--ink-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+}
+.note b{font-weight:600;color:var(--ink)}
+
+/* ============================================================
+   Generic lists / tables
+   ============================================================ */
+.cols2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.nfr{background:#fff;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;padding:18px 20px}
+.nfr h4{font-size:14px;margin-bottom:6px}
+.nfr p{font-size:13.6px;color:var(--ink-2);line-height:1.6}
+.nfr .opt{display:inline-block;margin-left:7px;font:600 10px var(--mono);letter-spacing:.06em;color:var(--muted-2);border:1px solid var(--line-2);border-radius:3px;padding:2px 5px;vertical-align:1px}
+.datacard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+.datacard h4{font-size:13px;color:var(--accent);margin-bottom:8px;letter-spacing:-.005em}
+.datacard ul{margin:0;padding-left:16px;font-size:13.4px;color:var(--ink-2);line-height:1.65}
+.datacard li{margin-bottom:2px}
+.bullets{list-style:none;margin:0;padding:0}
+.bullets li{position:relative;padding:11px 0 11px 22px;border-top:1px solid var(--line);font-size:14px;color:var(--ink-2);line-height:1.6}
+.bullets li:first-child{border-top:0}
+.bullets li::before{content:"";position:absolute;left:4px;top:19px;width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.5}
+.bullets li b{color:var(--ink);font-weight:600}
+table.plain{border-collapse:collapse;width:100%;font-size:14px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+table.plain th{
+  text-align:left;background:var(--surface);font:600 11px var(--mono);letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);padding:11px 18px;border-bottom:1px solid var(--line-2);
+}
+table.plain td{padding:13px 18px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top;line-height:1.6}
+table.plain tbody tr:last-child td{border-bottom:0}
+table.plain tbody tr:hover td{background:#fafcfe}
+table.plain td.term{font-weight:600;color:var(--ink);white-space:nowrap;width:210px}
+.constraint td:first-child{width:120px}
+.ctag{display:inline-flex;align-items:center;gap:6px;font:600 10.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:4px;padding:3px 8px;white-space:nowrap}
+
+/* ============================================================
+   Gaps
+   ============================================================ */
+.gaps-head{
+  display:flex;gap:12px;align-items:flex-start;padding:15px 18px;border-radius:var(--radius);
+  background:var(--warn-soft);border:1px solid var(--warn-line);margin-bottom:22px;
+}
+.gaps-head svg{width:17px;height:17px;flex:none;color:var(--warn);margin-top:2px}
+.gaps-head p{font-size:13.5px;color:var(--ink-2);line-height:1.6}
+.gaps-head b{color:var(--ink);font-weight:600}
+.gap{display:flex;gap:16px;padding:18px 0;border-top:1px solid var(--line)}
+.gap:first-of-type{border-top:0;padding-top:4px}
+.gap>div{max-width:82ch}
+.gap .qn{font:650 11px var(--mono);color:var(--muted-2);flex:none;width:28px;padding-top:2px}
+.gap h4{font-size:14.5px;margin-bottom:5px}
+.gap p{font-size:13.8px;color:var(--ink-2);line-height:1.62}
+.gap .ask{margin-top:7px;font-size:13.4px;color:var(--accent);font-style:italic}
+
+/* ============================================================
+   Glossary tooltip
+   ============================================================ */
+abbr.term{
+  text-decoration:none;border-bottom:1px dotted var(--muted-2);cursor:help;
+}
+abbr.term:hover,abbr.term:focus{border-bottom-color:var(--accent);color:var(--accent)}
+#tip{
+  position:fixed;z-index:200;max-width:300px;background:var(--ink);color:#fff;font-size:12.5px;line-height:1.5;
+  padding:9px 12px;border-radius:var(--radius-sm);box-shadow:0 6px 24px rgba(13,22,32,.22);
+  opacity:0;visibility:hidden;transform:translateY(3px);transition:opacity .13s ease,transform .13s ease;pointer-events:none;
+}
+#tip.on{opacity:1;visibility:visible;transform:translateY(0)}
+#tip .t{display:block;font:650 10.5px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:#8fb6d6;margin-bottom:3px}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+footer{padding:36px 0 56px;color:var(--muted);font-size:12.5px;line-height:1.7}
+footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:26px}
+footer b{color:var(--ink-2);font-weight:600}
+#totop{
+  position:fixed;right:24px;bottom:24px;z-index:40;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line-2);background:#fff;color:var(--ink-2);cursor:pointer;box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;
+}
+#totop.on{opacity:1;visibility:visible}
+#totop:hover{border-color:var(--accent);color:var(--accent)}
+#totop svg{width:15px;height:15px}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width:1250px){
+  /* espaço curto na barra: recolhe os links de seções secundárias */
+  .navlinks a:nth-child(5),.navlinks a:nth-child(6),.navlinks a:nth-child(7){display:none}
+}
+@media (max-width:980px){
+  .wrap{padding:0 22px}
+  .hero h1{font-size:32px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kpi{border-bottom:1px solid var(--line);padding-left:0}
+  .kpi:nth-child(2){border-right:0}
+  .kpi:nth-child(3),.kpi:nth-child(4){border-bottom:0}
+  .kpi:nth-child(3){padding-left:0}
+  .stake,.cards,.cols2{grid-template-columns:1fr}
+  .cols3{grid-template-columns:repeat(2,1fr)}
+  .navlinks{display:none}
+  .flow-scroll{margin:0 -22px;padding-left:22px;padding-right:22px}
+}
+@media (max-width:620px){
+  .cols3{grid-template-columns:1fr}
+  #q{width:150px}
+  #q:focus{width:170px}
+  .hero h1{font-size:27px}
+  .hero .sub{font-size:15.5px}
+}
+
+/* ============================================================
+   Print
+   ============================================================ */
+@media print{
+  :root{--shadow:none}
+  @page{size:A4;margin:14mm 12mm}
+  body{font-size:10.5pt;background:#fff}
+  .topbar,.toolbar,.flow-hint,#totop,#tip,.rf-id:hover{display:none !important}
+  html{scroll-padding-top:0}
+  .wrap{max-width:none;padding:0}
+  .hero .wrap{padding-top:0}
+  section{padding:18pt 0;break-inside:auto}
+  .sec-head{break-after:avoid}
+  .group-head{break-after:avoid}
+  .rf,.card,.datacard,.nfr,.gap,.step,.band{break-inside:avoid;box-shadow:none}
+  .cards{grid-template-columns:repeat(2,1fr);gap:8pt}
+  .rf{border:1px solid #ccc;padding:9pt 11pt}
+  .flow{grid-template-columns:repeat(3,1fr);gap:6pt}
+  .step{cursor:default}
+  .swim-scroll,.swim-hint{display:none}
+  .swim-print{display:block}
+  .actors{grid-template-columns:repeat(3,1fr)}
+  abbr.term{border-bottom:0}
+  a{color:inherit;text-decoration:none}
+  section{border-bottom:1px solid #ddd}
+  #requisitos{break-before:page}
+  #jornada{break-before:page}
+  #glossario{break-before:page}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ TOPBAR ============================ -->
+<div class="topbar no-term">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/>
+      </svg>
+      Emissor de CCB PJ
+    </div>
+    <nav class="navlinks" aria-label="Seções do documento">
+      <a href="#partes">Partes</a>
+      <a href="#fluxo">Fluxo</a>
+      <a href="#requisitos">Requisitos</a>
+      <a href="#jornada">Jornada</a>
+      <a href="#nao-funcionais">Qualidade</a>
+      <a href="#dados">Dados</a>
+      <a href="#regulatorio">Regulatório</a>
+      <a href="#restricoes">Restrições</a>
+      <a href="#glossario">Glossário</a>
+      <a href="#lacunas">Lacunas</a>
+    </nav>
+    <div class="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Buscar requisito…" aria-label="Buscar nos requisitos funcionais" autocomplete="off">
+      <button id="qclear" type="button" aria-label="Limpar busca">&times;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ HERO ============================ -->
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Documentação Técnica de Requisitos</span>
+    <h1>Épico: Emissor de CCB PJ</h1>
+    <p class="sub">Plataforma de emissão, assinatura, liquidação, cessão e cobrança de Cédulas de Crédito Bancário para pessoas jurídicas, operada pela <b>PaGoal</b>, Sociedade de Crédito Direto.</p>
+    <div class="meta">
+      <span><b>Cliente:</b> PaGoal — Sociedade de Crédito Direto</span>
+      <span><b>Documentação:</b> Guilherme Reis</span>
+      <span><b>Data:</b> 17/09/2026</span>
+      <span><b>Escopo:</b> CCB PJ</span>
+    </div>
+    <div class="kpis no-term">
+      <div class="kpi"><div class="n">21</div><div class="l">Requisitos em escopo<br>de 22 mapeados</div></div>
+      <div class="kpi"><div class="n">8</div><div class="l">Módulos funcionais</div></div>
+      <div class="kpi"><div class="n">7</div><div class="l">Atores na jornada</div></div>
+      <div class="kpi"><div class="n">4</div><div class="l">Frentes regulatórias</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================ PARTES ============================ -->
+<section id="partes">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01 — Contexto</span>
+      <h2>Partes interessadas</h2>
+      <p class="lead">Quem opera, quem contrata, quem compra e quem fiscaliza a operação de crédito.</p>
+    </div>
+    <div class="stake">
+      <div class="card primary">
+        <div class="role">Cliente / Jurisdição</div>
+        <h3>PaGoal — Sociedade de Crédito Direto</h3>
+        <p>Instituição financeira emissora de Cédulas de Crédito Bancário (CCB) para pessoas jurídicas. É a operadora da plataforma: emite, liquida, cede e cobra.</p>
+      </div>
+      <div class="card">
+        <div class="role">Demais entidades no fluxo</div>
+        <ul class="entlist">
+          <li><span class="dot"></span>Consultorias (originadoras/parceiras de negócio)
+            <span class="named">No projeto: <b>Concreta Consultoria</b> e <b>Vaduz Consultoria</b></span></li>
+          <li><span class="dot"></span>Tomadores/Sacados (pessoas jurídicas que contratam o crédito)</li>
+          <li><span class="dot"></span>Fundos (compradores das cessões de CCB)
+            <span class="named">Sob tutela da <b>Concreta Gestora</b>: Fundo Brooklyn, Fundo Concreto NP, Fundo Concreto Consignado, entre outros</span></li>
+          <li><span class="dot"></span>Órgãos e integrações externas: BACEN, B3, CVM, ClickSign, Matera</li>
+        </ul>
+      </div>
+    </div>
+    <div class="actors no-term">
+      <div class="actor">
+        <div class="role">Instituição financeira</div>
+        <ul><li class="lead">PaGoal</li></ul>
+        <p>SCD emissora. Opera a plataforma de ponta a ponta e permanece responsável pela cobrança da sua carteira, inclusive após a cessão.</p>
+      </div>
+      <div class="actor">
+        <div class="role">Consultorias originadoras</div>
+        <ul><li>Concreta Consultoria</li><li>Vaduz Consultoria</li></ul>
+        <p>Trazem o tomador PJ à PaGoal e assinam a CCB pela consultoria. O modelo suporta 1 ou N consultorias.</p>
+      </div>
+      <div class="actor">
+        <div class="role">Gestora e fundos cessionários</div>
+        <ul><li class="lead">Concreta Gestora</li><li>Fundo Brooklyn</li><li>Fundo Concreto NP</li><li>Fundo Concreto Consignado</li><li>e outros</li></ul>
+        <p>Avaliam a proposta antes da concretização, adquirem a cessão e recebem os repasses dos pagamentos.</p>
+      </div>
+      <div class="actor">
+        <div class="role">Sistemas e órgãos</div>
+        <ul><li>ClickSign</li><li>Matera</li><li>BACEN</li><li>B3</li><li>CVM</li></ul>
+        <p>Assinatura eletrônica, core bancário, reporte regulatório e registro de recebíveis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FLUXO ============================ -->
+<section id="fluxo">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02 — Visão operacional</span>
+      <h2>Fluxo end-to-end</h2>
+      <p class="lead">Encadeamento da operação, do cadastro da consultoria até a cobrança e o repasse ao fundo cessionário. Clique numa etapa para filtrar os requisitos correspondentes.</p>
+    </div>
+    <div class="flow-scroll">
+      <div class="flow no-term" id="flow" role="group" aria-label="Etapas do fluxo operacional"></div>
+    </div>
+    <div class="band">
+      <span class="tag">Transversal</span>
+      <span class="txt"><b>CADOC / BACEN — RF-15.</b> Geração e comunicação dos registros 3040, 3044 e 3050 em cadência periódica definida pelo BACEN, portanto contínua e não presa a uma etapa da esteira.</span>
+    </div>
+    <p class="flow-hint">Agrupamento por etapa e módulo é uma camada de organização desta apresentação; os identificadores RF-01 a RF-22 e os textos permanecem os do documento original.</p>
+  </div>
+</section>
+
+<!-- ============================ REQUISITOS ============================ -->
+<section id="requisitos">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03 — Escopo</span>
+      <h2>Requisitos funcionais</h2>
+      <p class="lead">Os 22 requisitos levantados, com o motivo de existirem e as integrações envolvidas. Textos transcritos do documento de origem.</p>
+    </div>
+
+    <div class="toolbar no-term">
+      <span class="tb-label">Integração</span>
+      <div class="chips" id="chips" role="group" aria-label="Filtrar por integração"></div>
+      <div class="tb-right">
+        <div class="seg no-term" role="group" aria-label="Ordenação dos requisitos">
+          <button type="button" id="sort-mod" class="on">Por módulo</button>
+          <button type="button" id="sort-orig">Ordem original</button>
+        </div>
+        <span id="count" role="status" aria-live="polite">22 de 22 requisitos</span>
+        <button type="button" id="reset">Limpar filtros</button>
+      </div>
+    </div>
+
+    <div id="list"></div>
+    <div class="empty" id="empty">
+      <b>Nenhum requisito corresponde aos filtros</b>
+      Ajuste a busca ou remova os filtros de integração e etapa.
+    </div>
+  </div>
+</section>
+
+<!-- ============================ JORNADA ============================ -->
+<section id="jornada">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">04 — Visão por ator</span>
+      <h2>Jornada da CCB por raias</h2>
+      <p class="lead">O mesmo processo da esteira, agora mostrando <em>quem faz o quê</em> em cada fase. Cada raia é um ator; cada caixa aponta os requisitos que a sustentam.</p>
+    </div>
+    <div class="swim-scroll">
+      <div class="swim" id="swim" role="img" aria-label="Fluxo da CCB por raias de ator, da originação à cobrança"></div>
+    </div>
+    <div class="swim-print" id="swim-print"></div>
+    <div class="swim-hint">
+      <span class="drag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m9 6-6 6 6 6"/><path d="m15 6 6 6-6 6"/></svg>
+        Role na horizontal para ver as 8 fases
+      </span>
+      <span>Clique num RF para ir direto ao requisito.</span>
+    </div>
+    <div class="band" style="margin-top:14px">
+      <span class="tag">Transversal</span>
+      <span class="txt"><b>BACEN — RF-15.</b> Independente da fase, a PaGoal gera e comunica os CADOC 3040, 3044 e 3050 na cadência definida pelo BACEN.</span>
+    </div>
+    <div class="note">
+      <b>Recorte de escopo.</b> Depois da cessão, a PaGoal continua acompanhando e cobrando a sua carteira e repassando os pagamentos ao fundo cessionário. A atualização, a baixa e eventuais novas cessões do registro na B3 passam a ser responsabilidade do fundo e <b>não fazem parte deste projeto</b> — por isso o RF-22 aparece marcado como fora de escopo.
+    </div>
+  </div>
+</section>
+
+<!-- ============================ NÃO FUNCIONAIS ============================ -->
+<section id="nao-funcionais">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">05 — Qualidade</span>
+      <h2>Requisitos não funcionais</h2>
+    </div>
+    <div class="cols3">
+      <div class="nfr">
+        <h4>Flexibilidade / Configurabilidade</h4>
+        <p>O sistema não deve conter regras “endurecidas” (ex.: limite de um único administrador ou fluxo de pagamento padronizado).</p>
+      </div>
+      <div class="nfr">
+        <h4>Escalabilidade</h4>
+        <p>Suportar 1 ou N consultorias, N instituições financeiras, N administradores/assinantes, N garantias e N títulos por cessão.</p>
+      </div>
+      <div class="nfr">
+        <h4>Usabilidade <span class="opt">Desejável</span></h4>
+        <p>Editor de templates com abordagem <em>drag and drop</em> de cláusulas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ DADOS ============================ -->
+<section id="dados">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">06 — Modelo</span>
+      <h2>Requisitos de dados</h2>
+      <p class="lead">Informações que precisam existir no sistema, por categoria.</p>
+    </div>
+    <div class="cols3">
+      <div class="datacard"><h4>Consultoria</h4><ul><li>Nome</li><li>Razão social</li><li>CNPJ</li><li>Responsáveis/assinantes</li><li>Dados bancários</li></ul></div>
+      <div class="datacard"><h4>Instituição Financeira</h4><ul><li>Configurações fiscais</li><li>Limite/teto</li><li>Bancos de cobrança</li><li>Cessionários permitidos</li><li>IPOC</li></ul></div>
+      <div class="datacard"><h4>Proposta / CCB</h4><ul><li>Template</li><li>Valor</li><li>Fluxo de pagamento</li><li>Taxa/indexador (CDI, IPCA, prefixado)</li></ul></div>
+      <div class="datacard"><h4>Partes</h4><ul><li>Administradores (N)</li><li>Testemunhas</li><li>Avaliadores</li><li>Avalistas</li></ul></div>
+      <div class="datacard"><h4>Garantias — Imóveis</h4><ul><li>Matrícula</li><li>Endereço</li></ul></div>
+      <div class="datacard"><h4>Garantias — Veículos</h4><ul><li>Marca</li><li>Modelo</li><li>Número do chassi</li></ul></div>
+      <div class="datacard"><h4>Cessão</h4><ul><li>Valor pago</li><li>Ágio/deságio</li><li>Títulos (1..N)</li><li>Fundo cessionário</li></ul></div>
+      <div class="datacard"><h4>Regulatório</h4><ul><li>CADOC 3040, 3044, 3050</li><li>Dados de registro B3 (CVM 175)</li></ul></div>
+      <div class="datacard"><h4>Formatos de saída</h4><ul><li>PDF (documento e termo)</li><li>CSV</li><li>XML</li><li>JSON</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ UI + REGULATÓRIO ============================ -->
+<section id="regulatorio">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">07 — Interface e conformidade</span>
+      <h2>Interface do usuário e requisitos regulatórios</h2>
+    </div>
+    <div class="cols2">
+      <div>
+        <h3 style="font-size:14px;margin-bottom:6px">Requisitos de interface do usuário</h3>
+        <ul class="bullets">
+          <li>Editor de templates com montagem de cláusulas via <em>drag and drop</em>.</li>
+          <li>Interface de simulação/criação de fluxos de pagamento customizados.</li>
+          <li>CRUDs de cadastro (consultoria, financeira, tomadores, partes).</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:14px;margin-bottom:6px">Requisitos regulatórios e de conformidade</h3>
+        <ul class="bullets">
+          <li><b>BACEN:</b> geração e envio dos CADOC 3040, 3044 e 3050 conforme cadência estabelecida.</li>
+          <li><b>CVM 175:</b> registro de recebíveis na B3 com IPOC, dados do cessionário e detalhamento de garantias.</li>
+          <li><b>B3:</b> registro da CCB no momento da cessão e regras de atualização/baixa.</li>
+          <li><b>Considerações fiscais:</b> configuração por instituição financeira para aproveitamento de isenção/redução de custo fiscal.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ RESTRIÇÕES ============================ -->
+<section id="restricoes">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">08 — Limites</span>
+      <h2>Restrições</h2>
+      <p class="lead">Condições impostas de fora para dentro: não são negociáveis no desenho da solução.</p>
+    </div>
+    <table class="plain constraint">
+      <thead><tr><th>Tipo</th><th>Descrição</th></tr></thead>
+      <tbody>
+        <tr><td><span class="ctag">Restrição</span></td><td>Envio dos arquivos CADOC segue <b>cadência definida pelo BACEN</b>.</td></tr>
+        <tr><td><span class="ctag">Restrição</span></td><td>Registro na B3 deve seguir estritamente os campos exigidos pela <b>CVM 175</b>.</td></tr>
+        <tr><td><span class="ctag">Restrição</span></td><td>Após a cessão, a responsabilidade de manutenção do registro na B3 migra para o <b>fundo cessionário</b>.
+          <span class="named" style="color:var(--warn)">Por isso a manutenção do registro está <b style="color:var(--warn)">fora do escopo</b> deste projeto — à PaGoal cabe seguir cobrando a carteira e repassando os pagamentos.</span></td></tr>
+        <tr><td><span class="ctag">Restrição</span></td><td>Assinaturas obrigatórias devem ser coletadas antes da liquidação.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ GLOSSÁRIO ============================ -->
+<section id="glossario">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">09 — Vocabulário</span>
+      <h2>Definições</h2>
+      <p class="lead">Termos marcados com linha pontilhada ao longo da página exibem a definição ao passar o mouse ou ao receber foco pelo teclado.</p>
+    </div>
+    <table class="plain no-term">
+      <thead><tr><th>Termo</th><th>Definição / Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="term">CCB</td><td>Cédula de Crédito Bancário.</td></tr>
+        <tr><td class="term">SCD</td><td>Sociedade de Crédito Direto (instituição financeira emissora). <span class="named">Neste projeto: <b>PaGoal</b>.</span></td></tr>
+        <tr><td class="term">IP</td><td>Instituição de Pagamento (mencionada como alternativa à SCD).</td></tr>
+        <tr><td class="term">Consultoria</td><td>Empresa originadora que traz o tomador/sacado à SCD. <span class="named">Neste projeto: <b>Concreta Consultoria</b> e <b>Vaduz Consultoria</b>.</span></td></tr>
+        <tr><td class="term">Tomador/Sacado</td><td>Pessoa jurídica que contrata o crédito.</td></tr>
+        <tr><td class="term">Fundo</td><td>Entidade que adquire (compra) a cessão da CCB. <span class="named">Neste projeto: fundos sob tutela da <b>Concreta Gestora</b> — Brooklyn, Concreto NP, Concreto Consignado, entre outros.</span></td></tr>
+        <tr><td class="term">IPOC</td><td>Identificador Padrão de Operação de Crédito (dado exigido no registro B3 conforme norma CVM 175).</td></tr>
+        <tr><td class="term">CADOC 3040 / 3044 / 3050</td><td>Documentos de remessa de informações ao BACEN.</td></tr>
+        <tr><td class="term">Ágio / Deságio</td><td>Diferencial aplicado no valor da cessão em relação ao valor presente.</td></tr>
+        <tr><td class="term">Confissão de dívida</td><td>Modalidade de CCB que substitui 1 a N títulos vencidos/renegociados.</td></tr>
+        <tr><td class="term">Índices pós-fixados</td><td>CDI, IPCA ou outros indexadores aplicáveis às parcelas.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ LACUNAS ============================ -->
+<section id="lacunas">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">10 — Análise adicional</span>
+      <h2>Lacunas e perguntas em aberto</h2>
+    </div>
+    <div class="gaps-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5v.01"/></svg>
+      <p><b>Esta seção não faz parte do levantamento.</b> São observações de leitura sobre o documento de requisitos, apresentadas como perguntas a validar com o time — nenhuma delas foi acordada como requisito.</p>
+    </div>
+    <div class="gap">
+      <span class="qn">01</span>
+      <div>
+        <h4>Sobreposição entre RF-06 e RF-21</h4>
+        <p>“Controle fiscal e de cobrança” (RF-06) e “Módulo de Cobrança” (RF-21) compartilham escopo: ambos tratam de inadimplência, valores a receber e repasse ao fundo comprador.</p>
+        <p class="ask">Onde fica a fronteira — RF-06 é o modelo de dados/controle e RF-21 a interface operacional, ou são dois módulos distintos?</p>
+      </div>
+    </div>
+    <div class="gap">
+      <span class="qn">02</span>
+      <div>
+        <h4>Ausência de requisitos de acesso e perfis</h4>
+        <p>Três tipos de ator distintos operam o sistema — consultoria, SCD e fundo — mas não há requisito de autenticação, permissão por perfil, nem de segregação de dados entre consultorias concorrentes.</p>
+        <p class="ask">Consultorias enxergam apenas os próprios tomadores? O fundo tem acesso à plataforma ou só recebe o pacote de arquivos (RF-18)?</p>
+      </div>
+    </div>
+    <div class="gap">
+      <span class="qn">03</span>
+      <div>
+        <h4>Não funcionais restritos a flexibilidade</h4>
+        <p>Os NFRs cobrem flexibilidade, escalabilidade de cardinalidade e usabilidade. Não há requisito de performance, disponibilidade, trilha de auditoria ou LGPD — todos relevantes para instituição financeira regulada que trafega dados de CNPJ, garantias e valores.</p>
+        <p class="ask">Existe exigência de trilha de auditoria imutável para o que é reportado ao BACEN e registrado na B3?</p>
+      </div>
+    </div>
+    <div class="gap">
+      <span class="qn">04</span>
+      <div>
+        <h4>Formato indefinido no RF-18</h4>
+        <p>O envio do pacote ao fundo prevê “arquivo de dados (CSV, XML ou JSON)”, sem definir se o formato é escolha do fundo, configuração por cessionário, ou se os três precisam ser suportados desde a primeira entrega.</p>
+        <p class="ask">O layout do arquivo é definido pela SCD ou cada fundo impõe o seu?</p>
+      </div>
+    </div>
+    <div class="gap">
+      <span class="qn">05</span>
+      <div>
+        <h4>Rastreabilidade na confissão de dívida (RF-08)</h4>
+        <p>A modalidade “substitui 1 para N títulos vencidos/renegociados”, o que implica manter vínculo entre a nova CCB e os títulos originais. Os requisitos de dados não descrevem esse vínculo.</p>
+        <p class="ask">Os títulos originais precisam ser rastreáveis após a substituição — para cobrança, para o CADOC e para o registro na B3?</p>
+      </div>
+    </div>
+    <div class="gap">
+      <span class="qn">06</span>
+      <div>
+        <h4>“Fluxo de assinatura” sem provedor nomeado (RF-02, RF-12)</h4>
+        <p>RF-09, RF-13 e RF-17 citam o ClickSign explicitamente. Já RF-02 e RF-12 referenciam apenas “Fluxo de assinatura”, sem nomear o provedor — embora na prática dependam do mesmo fluxo.</p>
+        <p class="ask">Os assinantes da consultoria e as partes do contrato entram pelo mesmo fluxo do ClickSign, ou existe caminho alternativo previsto?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <b>Documentação e levantamento:</b> Guilherme Reis<br>
+      <b>Fonte:</b> 09-17 Documentação de Requisitos — Épico Emissor de CCB PJ<br>
+      Requisitos, restrições e definições transcritos literalmente do documento original.
+    </div>
+    <div style="text-align:right">
+      <b>Camadas de apresentação:</b> agrupamento em módulos, etapas do fluxo,<br>
+      jornada por raias, nomeação dos atores e seção de lacunas.
+    </div>
+  </div>
+</footer>
+
+<div id="tip" role="tooltip" aria-hidden="true"></div>
+<button id="totop" type="button" aria-label="Voltar ao topo">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 6-6 6 6"/></svg>
+</button>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   Dados — textos transcritos do documento de origem.
+   module/step são camadas de organização desta apresentação.
+   ============================================================ */
+var SYS = {
+  clicksign: {label:"ClickSign",           color:"var(--c-clicksign)"},
+  b3:        {label:"B3",                  color:"var(--c-b3)"},
+  bacen:     {label:"BACEN / CADOC",       color:"var(--c-bacen)"},
+  matera:    {label:"Matera (core)",       color:"var(--c-matera)"},
+  fundos:    {label:"Fundos",              color:"var(--c-fundos)"},
+  cobranca:  {label:"Bancos de cobrança",  color:"var(--c-cobranca)"},
+  interno:   {label:"Interno",             color:"var(--c-interno)"}
+};
+
+var MODULES = [
+  {key:"cadastros",   name:"Cadastros Base"},
+  {key:"originacao",  name:"Originação / Esteira de Crédito"},
+  {key:"financeiro",  name:"Motor Financeiro (fluxo e taxas)"},
+  {key:"documento",   name:"Documento e Templates"},
+  {key:"assinatura",  name:"Assinatura e Liquidação"},
+  {key:"regulatorio", name:"Regulatório"},
+  {key:"cessao",      name:"Cessão"},
+  {key:"cobranca",    name:"Cobrança e Controle Fiscal"}
+];
+
+var STEPS = [
+  {key:"s1", name:"Cadastros",             rfs:["RF-01","RF-02","RF-03","RF-04","RF-05"]},
+  {key:"s2", name:"Proposta / Esteira",    rfs:["RF-09","RF-12"]},
+  {key:"s3", name:"Modelagem financeira",  rfs:["RF-10","RF-11"]},
+  {key:"s4", name:"Geração do documento",  rfs:["RF-07","RF-08"]},
+  {key:"s5", name:"Assinatura",            rfs:["RF-13"]},
+  {key:"s6", name:"Liquidação",            rfs:["RF-14"]},
+  {key:"s7", name:"Cessão",                rfs:["RF-16","RF-17","RF-18"]},
+  {key:"s8", name:"Registro B3",           rfs:["RF-19","RF-20"]},
+  {key:"s9", name:"Cobrança",              rfs:["RF-06","RF-21"]}
+];
+
+var RFS = [
+ {id:"RF-01", t:"CRUD de Cadastro de Consultoria",
+  w:"A consultoria é a empresa que origina/traz o tomador PJ para a SCD. Seus dados devem compor o documento final da CCB. Deve permitir 1 ou N consultorias.",
+  raw:["Documento CCB emitido"], sys:["interno"], mod:"cadastros"},
+ {id:"RF-02", t:"Cadastro de assinantes da Consultoria",
+  w:"Registrar responsável(is) que assinam pela empresa; caso haja mais de um, todos devem estar cadastrados como assinantes.",
+  raw:["Fluxo de assinatura"], sys:["interno"], mod:"cadastros"},
+ {id:"RF-03", t:"Dados cadastrais da Consultoria",
+  w:"Armazenar nome da empresa, razão social, CNPJ, responsáveis e dados bancários.",
+  raw:[], sys:[], mod:"cadastros"},
+ {id:"RF-04", t:"Cadastro de Instituição Financeira (SCD/IP)",
+  w:"Permitir 1 ou mais SCDs/IP para aproveitamento de regras fiscais (isenção/redução de custo fiscal), cada uma com configurações próprias.",
+  raw:["CADOC/BACEN","B3"], sys:["bacen","b3"], mod:"cadastros"},
+ {id:"RF-05", t:"Configuração operacional da Financeira",
+  w:"Definir limite/teto financeiro de operação, origem do teto, para quem pode ceder e quais bancos serão usados para cobrança.",
+  raw:["Módulo de cobrança"], sys:["cobranca"], mod:"cadastros"},
+ {id:"RF-06", t:"Controle fiscal e de cobrança",
+  w:"Controlar valores a receber, inadimplência, para quem cada CCB foi cedida, datas e formas de repasse (parciais ou totais de parcelas e títulos).",
+  raw:["Fundos","Matera"], sys:["fundos","matera"], mod:"cobranca"},
+ {id:"RF-07", t:"Módulo de Templates de CCB",
+  w:"Criar/customizar templates com editor (preferencialmente drag and drop) de cláusulas. Suportar upload de templates com campos chave-valor.",
+  raw:[], sys:[], mod:"documento"},
+ {id:"RF-08", t:"Tipos de template",
+  w:"Suportar CCB com garantia de imóvel, fluxo, faturamento, veículo (sempre N imóveis/N veículos), CCB PJ sem garantia e confissão de dívida (substituindo 1 para N títulos vencidos/renegociados, com ou sem garantia).",
+  raw:["B3 (garantias)"], sys:["b3"], mod:"documento"},
+ {id:"RF-09", t:"Esteira de crédito / Geração de Proposta",
+  w:"A consultoria cadastra tomadores/sacados e gera proposta para avaliação do sacado e do fundo comprador antes da concretização.",
+  raw:["ClickSign"], sys:["clicksign"], mod:"originacao"},
+ {id:"RF-10", t:"Simulação e criação de fluxo de pagamento flexível",
+  w:"Permitir modelar fluxos não padronizados (ex.: parcelas escalonadas, carência intercalada, parcelas mensais/trimestrais). Definir valor por parcela ou por fluxo.",
+  raw:[], sys:[], mod:"financeiro"},
+ {id:"RF-11", t:"Configuração de taxas e indexadores",
+  w:"Suportar juros simples/compostos, prefixado mensal, e componentes pós-fixados (CDI, IPCA). Ex.: parcela fixa OU “R$ 100 mil + 100% CDI”.",
+  raw:[], sys:[], mod:"financeiro"},
+ {id:"RF-12", t:"Cadastro de partes do contrato",
+  w:"Permitir N administradores/assinantes (grupos econômicos), testemunhas, avaliadores de bens e avalistas, conforme exigência do template.",
+  raw:["Fluxo de assinatura"], sys:["interno"], mod:"originacao"},
+ {id:"RF-13", t:"Integração com fluxo de assinatura",
+  w:"Proposta aprovada segue para o ClickSign; coletar assinaturas obrigatórias.",
+  raw:["ClickSign"], sys:["clicksign"], mod:"assinatura"},
+ {id:"RF-14", t:"Liquidação financeira",
+  w:"Ao concluir todas as assinaturas obrigatórias, enviar o fluxo de liquidação ao core bancário.",
+  raw:["Matera (core bancário da SCD)"], sys:["matera"], mod:"assinatura"},
+ {id:"RF-15", t:"Geração de arquivos CADOC",
+  w:"Gerar e comunicar ao BACEN os registros CADOC 3040, 3044 e 3050, respeitando a cadência de envio.",
+  raw:["BACEN"], sys:["bacen"], mod:"regulatorio"},
+ {id:"RF-16", t:"Cessão de CCB ao Fundo",
+  w:"Permitir cessão com ágio, a valor presente, valor fixo, ou por taxa de ágio/deságio.",
+  raw:["Fundos"], sys:["fundos"], mod:"cessao"},
+ {id:"RF-17", t:"Termo de cessão",
+  w:"Gerar termo de cessão para assinatura do fundo.",
+  raw:["ClickSign"], sys:["clicksign"], mod:"cessao"},
+ {id:"RF-18", t:"Envio de pacote ao Fundo",
+  w:"Enviar PDF assinado, termo de cessão e arquivo de dados (CSV, XML ou JSON) com valor pago e títulos (1 ou N) da mesma cessão.",
+  raw:["Fundos"], sys:["fundos"], mod:"cessao"},
+ {id:"RF-19", t:"Registro do recebível na B3",
+  w:"Registrar a CCB na B3 no momento da cessão, com IPOC da SCD, identificando o fundo cessionário, conforme CVM 175.",
+  raw:["B3"], sys:["b3"], mod:"regulatorio"},
+ {id:"RF-20", t:"Detalhamento de garantias no registro",
+  w:"Listar garantias conforme exigência: imóveis (matrícula, endereço), veículos (marca, modelo, chassi) e demais dados exigidos pela CVM 175.",
+  raw:["B3"], sys:["b3"], mod:"regulatorio"},
+ {id:"RF-21", t:"Módulo de Cobrança",
+  w:"Visualizar CCBs por consultoria e financeira, cedidas/não cedidas, aplicar multa/juros, tratar pagamentos antecipados/parciais e repassar valores ao fundo comprador.",
+  raw:["Fundos","bancos de cobrança"], sys:["fundos","cobranca"], mod:"cobranca"},
+ {id:"RF-22", t:"Transferência de titularidade pós-cessão",
+  w:"Após a cessão, o fundo comprador torna-se responsável pela atualização, baixa e eventuais novas cessões do registro na B3.",
+  raw:["B3"], sys:["b3"], mod:"cessao", out:true,
+  note:"Fora do escopo deste projeto. A PaGoal segue acompanhando e cobrando a sua carteira e repassando os pagamentos ao fundo; a manutenção do registro na B3 após a cessão é responsabilidade do fundo cessionário e não será mapeada aqui."}
+];
+
+/* map id -> step */
+var STEP_OF = {};
+STEPS.forEach(function(s){ s.rfs.forEach(function(id){ STEP_OF[id] = s.key; }); });
+STEP_OF["RF-15"] = "transversal";
+STEP_OF["RF-22"] = "fora";
+
+var MOD_NAME = {};
+MODULES.forEach(function(m){ MOD_NAME[m.key] = m.name; });
+
+/* ============================================================
+   Estado
+   ============================================================ */
+var state = { q:"", sys:null, step:null, sort:"mod" };
+
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+
+function norm(s){
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+}
+
+/* ============================================================
+   Fluxo
+   ============================================================ */
+function buildFlow(){
+  var el = $("#flow"), html = "";
+  STEPS.forEach(function(s,i){
+    /* a intensidade da borda superior cresce com a etapa: leitura de progressão
+       sem depender de setas, que quebram quando a grade muda de linha. */
+    var op = (0.2 + 0.8 * i/(STEPS.length-1)).toFixed(2);
+    html += '<button type="button" class="step" data-step="'+s.key+'" aria-pressed="false" style="border-top-color:rgba(18,69,110,'+op+')">'
+          +   '<span class="idx">ETAPA '+String(i+1).padStart(2,"0")+'</span>'
+          +   '<span class="name">'+s.name+'</span>'
+          +   '<span class="refs">'+s.rfs.map(function(id){ return "<span>"+id+"</span>"; }).join(" · ")+'</span>'
+          + '</button>';
+  });
+  el.innerHTML = html;
+  $$(".step", el).forEach(function(b){
+    b.addEventListener("click", function(){
+      var k = b.dataset.step;
+      state.step = (state.step === k) ? null : k;
+      render();
+      if(state.step){
+        document.getElementById("requisitos").scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    });
+  });
+}
+
+/* ============================================================
+   Chips de integração
+   ============================================================ */
+function buildChips(){
+  var el = $("#chips"), html = "";
+  Object.keys(SYS).forEach(function(k){
+    var n = RFS.filter(function(r){ return r.sys.indexOf(k) > -1; }).length;
+    if(!n) return;
+    html += '<button type="button" class="chip" data-sys="'+k+'" style="color:'+SYS[k].color+'" aria-pressed="false">'
+          +   '<span class="swatch"></span><span class="lbl">'+SYS[k].label+'</span><span class="n">'+n+'</span>'
+          + '</button>';
+  });
+  el.innerHTML = html;
+  $$(".chip", el).forEach(function(b){
+    b.addEventListener("click", function(){
+      var k = b.dataset.sys;
+      state.sys = (state.sys === k) ? null : k;
+      render();
+    });
+  });
+}
+
+/* ============================================================
+   Jornada por raias — quem faz o quê, em cada fase.
+   Camada de apresentação: nomeia os atores reais do projeto.
+   ============================================================ */
+var LANES = [
+  {key:"cons", name:"Consultoria",      who:"Concreta · Vaduz",        color:"#8a5200"},
+  {key:"tom",  name:"Tomador PJ",       who:"Sacado do crédito",       color:"#5b3fa8"},
+  {key:"scd",  name:"PaGoal",           who:"SCD · plataforma",        color:"#12456e"},
+  {key:"sign", name:"ClickSign",        who:"Assinatura eletrônica",   color:"#0b6b78"},
+  {key:"core", name:"Matera",           who:"Core bancário da PaGoal", color:"#1d4ed8"},
+  {key:"fund", name:"Concreta Gestora", who:"Fundos cessionários",     color:"#15683f"},
+  {key:"reg",  name:"BACEN · B3",       who:"Regulatório",             color:"#a11043"}
+];
+
+var PHASES = [
+  "Cadastro e configuração",
+  "Proposta",
+  "Aprovação",
+  "Emissão da CCB",
+  "Assinatura",
+  "Liquidação",
+  "Cessão",
+  "Cobrança e repasse"
+];
+
+var JOURNEY = [
+  {ph:0, lane:"cons", txt:"Concreta e Vaduz são cadastradas com razão social, CNPJ, dados bancários e os responsáveis que assinam pela empresa.", rfs:["RF-01","RF-02","RF-03"]},
+  {ph:0, lane:"scd",  txt:"A PaGoal configura teto de operação e sua origem, para quem pode ceder, bancos de cobrança e as regras fiscais da financeira.", rfs:["RF-04","RF-05"]},
+
+  {ph:1, lane:"cons", txt:"A consultoria cadastra o tomador PJ e gera a proposta na esteira de crédito.", rfs:["RF-09"]},
+  {ph:1, lane:"tom",  txt:"Informa as partes do contrato — administradores, avalistas, avaliadores e testemunhas — e as garantias oferecidas.", rfs:["RF-12"]},
+  {ph:1, lane:"scd",  txt:"A PaGoal modela o fluxo de pagamento e as taxas: prefixado, CDI, IPCA, carências intercaladas e parcelas escalonadas.", rfs:["RF-10","RF-11"]},
+
+  {ph:2, lane:"scd",  txt:"Avalia a proposta contra o teto da financeira e a lista de cessionários permitidos.", rfs:["RF-05","RF-09"]},
+  {ph:2, lane:"fund", txt:"A Concreta Gestora avalia pelo fundo comprador — Brooklyn, Concreto NP ou Concreto Consignado — antes da concretização.", rfs:["RF-09"]},
+
+  {ph:3, lane:"scd",  txt:"Seleciona o template aplicável — com garantia de imóvel, veículo, fluxo ou faturamento, sem garantia, ou confissão de dívida — e gera a CCB.", rfs:["RF-07","RF-08"]},
+
+  {ph:4, lane:"sign", txt:"O ClickSign recebe a CCB e conduz a coleta de todas as assinaturas obrigatórias.", rfs:["RF-13"]},
+  {ph:4, lane:"cons", txt:"Os assinantes cadastrados da Concreta ou da Vaduz assinam pela consultoria.", rfs:["RF-02"]},
+  {ph:4, lane:"tom",  txt:"Administradores, avalistas, avaliadores de bens e testemunhas assinam conforme a exigência do template.", rfs:["RF-12"]},
+
+  {ph:5, lane:"scd",  txt:"Concluídas todas as assinaturas obrigatórias, a PaGoal dispara o fluxo de liquidação.", rfs:["RF-14"]},
+  {ph:5, lane:"core", txt:"A Matera executa a liquidação financeira no core bancário da PaGoal.", rfs:["RF-14"]},
+
+  {ph:6, lane:"scd",  txt:"Define a forma da cessão — com ágio, a valor presente, valor fixo ou por taxa de ágio/deságio — e gera o termo de cessão.", rfs:["RF-16","RF-17"]},
+  {ph:6, lane:"sign", txt:"Coleta a assinatura do fundo no termo de cessão.", rfs:["RF-17"]},
+  {ph:6, lane:"fund", txt:"O fundo adquire a CCB e recebe o pacote: PDF assinado, termo de cessão e arquivo de dados (CSV, XML ou JSON) com valor pago e títulos da mesma cessão.", rfs:["RF-18"]},
+  {ph:6, lane:"reg",  txt:"Registro do recebível na B3 no momento da cessão, com o IPOC da PaGoal, o fundo cessionário identificado e o detalhamento das garantias exigido pela CVM 175.", rfs:["RF-19","RF-20"]},
+
+  {ph:7, lane:"tom",  txt:"Paga as parcelas — no vencimento, antecipadas ou parciais.", rfs:["RF-21"]},
+  {ph:7, lane:"scd",  txt:"A PaGoal cobra a carteira, aplica multa e juros, controla inadimplência e enxerga as CCBs por consultoria e financeira, cedidas e não cedidas.", rfs:["RF-06","RF-21"]},
+  {ph:7, lane:"fund", txt:"Recebe da PaGoal os repasses das parcelas e títulos cedidos, parciais ou totais, nas datas e formas acordadas.", rfs:["RF-06","RF-21"]},
+  {ph:7, lane:"fund", out:true, txt:"Atualização, baixa e novas cessões do registro na B3 passam a ser do fundo — não mapeado neste projeto.", rfs:["RF-22"]}
+];
+
+function stepsAt(laneKey, ph){
+  return JOURNEY.filter(function(j){ return j.lane === laneKey && j.ph === ph; });
+}
+
+function boxHTML(j, color){
+  var chips = j.rfs.map(function(id){ return '<a href="#'+id+'">'+id+'</a>'; }).join("");
+  return '<div class="sbox'+(j.out ? " out" : "")+'"'+(j.out ? "" : ' style="border-left-color:'+color+'"')+'>'
+       + (j.out ? '<span class="outtag">Fora de escopo</span>' : "")
+       + '<p>'+j.txt+'</p>'
+       + '<div class="rfs no-term">'+chips+'</div>'
+       + '</div>';
+}
+
+function buildSwim(){
+  var chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>';
+  var html = '<div class="swim-corner">Ator</div>';
+  PHASES.forEach(function(name,i){
+    html += '<div class="swim-ph'+(i === PHASES.length-1 ? " last-col" : "")+'">'
+          +   '<span class="pn no-term">'+(i ? chev : "")+'FASE '+String(i+1).padStart(2,"0")+'</span>'
+          +   '<span class="pt">'+name+'</span>'
+          + '</div>';
+  });
+  LANES.forEach(function(l,li){
+    var lastRow = (li === LANES.length-1) ? " last-row" : "";
+    html += '<div class="swim-lane'+lastRow+'">'
+          +   '<span class="ln"><span class="swatch" style="background:'+l.color+'"></span>'+l.name+'</span>'
+          +   '<span class="lw">'+l.who+'</span>'
+          + '</div>';
+    PHASES.forEach(function(_,pi){
+      var boxes = stepsAt(l.key, pi).map(function(j){ return boxHTML(j, l.color); }).join("");
+      html += '<div class="swim-cell'+(pi % 2 ? " alt" : "")+(pi === PHASES.length-1 ? " last-col" : "")+lastRow+'">'+boxes+'</div>';
+    });
+  });
+  $("#swim").innerHTML = html;
+
+  /* versão empilhada por fase, usada na impressão — a grade larga não cabe em A4 */
+  var pr = "";
+  PHASES.forEach(function(name,pi){
+    var rows = JOURNEY.filter(function(j){ return j.ph === pi; });
+    if(!rows.length) return;
+    pr += '<div class="pph"><h4><span>FASE '+String(pi+1).padStart(2,"0")+'</span>'+name+'</h4>';
+    rows.forEach(function(j){
+      var l = LANES.filter(function(x){ return x.key === j.lane; })[0];
+      pr += '<div class="prow'+(j.out ? " out" : "")+'">'
+          +   '<span class="pact">'+l.name+'</span>'
+          +   '<span class="ptxt">'+(j.out ? "[fora de escopo] " : "")+j.txt
+          +     '<span class="prf">'+j.rfs.join(" · ")+'</span></span>'
+          + '</div>';
+    });
+    pr += '</div>';
+  });
+  $("#swim-print").innerHTML = pr;
+}
+
+/* ============================================================
+   Requisitos
+   ============================================================ */
+function matches(r){
+  if(state.sys  && r.sys.indexOf(state.sys) < 0) return false;
+  if(state.step && STEP_OF[r.id] !== state.step) return false;
+  if(state.q){
+    var hay = norm(r.id + " " + r.t + " " + r.w + " " + r.raw.join(" ") + " " + MOD_NAME[r.mod]);
+    var terms = norm(state.q).split(/\s+/).filter(Boolean);
+    for(var i=0;i<terms.length;i++){ if(hay.indexOf(terms[i]) < 0) return false; }
+  }
+  return true;
+}
+
+function esc(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function cardHTML(r, mode){
+  /* evita repetir o nome do módulo em todo card quando já existe cabeçalho de
+     grupo: nesse modo o card mostra a etapa do fluxo, informação complementar. */
+  var meta = r.out ? MOD_NAME[r.mod] : ((mode === "mod") ? stepLabel(r.id) : MOD_NAME[r.mod]);
+  var tags = r.raw.length
+    ? r.raw.map(function(label,i){
+        var k = r.sys[Math.min(i, r.sys.length-1)] || "interno";
+        return '<span class="tag" style="color:'+SYS[k].color+'"><span class="swatch"></span><span>'+esc(label)+'</span></span>';
+      }).join("")
+    : '<span class="tag none"><span class="swatch"></span><span>Sem integração declarada</span></span>';
+
+  return '<article class="rf'+(r.out ? " out" : "")+'" id="'+r.id+'" data-id="'+r.id+'">'
+       +   '<div class="rf-top">'
+       +     '<a class="rf-id no-term" href="#'+r.id+'" title="Link direto para '+r.id+'">'+r.id+'</a>'
+       +     (r.out ? '<span class="badge-out no-term">Fora de escopo</span>' : "")
+       +     '<span class="rf-mod no-term">'+meta+'</span>'
+       +   '</div>'
+       +   '<h4>'+esc(r.t)+'</h4>'
+       +   '<p class="why">'+esc(r.w)+'</p>'
+       +   (r.note ? '<p class="scope-note"><b>Recorte de escopo.</b> '+esc(r.note)+'</p>' : "")
+       +   '<div class="tags no-term">'+tags+'</div>'
+       + '</article>';
+}
+
+function render(){
+  var visible = RFS.filter(matches);
+  var html = "";
+
+  if(state.sort === "mod"){
+    MODULES.forEach(function(m){
+      var items = visible.filter(function(r){ return r.mod === m.key; });
+      if(!items.length) return;
+      var total = RFS.filter(function(r){ return r.mod === m.key; }).length;
+      html += '<div class="group">'
+            +   '<div class="group-head"><h3>'+m.name+'</h3>'
+            +     '<span class="gn no-term">'+items.length+(items.length!==total ? " de "+total : "")+' '+(total===1?"requisito":"requisitos")+'</span>'
+            +   '</div>'
+            +   '<div class="cards">'+items.map(function(r){ return cardHTML(r,"mod"); }).join("")+'</div>'
+            + '</div>';
+    });
+  }else{
+    var ordered = visible.slice().sort(function(a,b){ return a.id.localeCompare(b.id); });
+    html = '<div class="group"><div class="cards">'+ordered.map(function(r){ return cardHTML(r,"orig"); }).join("")+'</div></div>';
+  }
+
+  var list = $("#list");
+  list.innerHTML = html;
+  $("#empty").classList.toggle("on", visible.length === 0);
+
+  var parts = [];
+  if(state.q)    parts.push('busca “'+state.q+'”');
+  if(state.sys)  parts.push(SYS[state.sys].label);
+  if(state.step) parts.push(stepName(state.step));
+  $("#count").textContent = visible.length + " de " + RFS.length + " requisitos"
+    + (parts.length ? " · " + parts.join(" · ") : "");
+
+  var filtered = !!(state.q || state.sys || state.step);
+  $("#reset").classList.toggle("on", filtered);
+
+  $$("#chips .chip").forEach(function(b){
+    var on = b.dataset.sys === state.sys;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  $$("#flow .step").forEach(function(b){
+    var on = b.dataset.step === state.step;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+
+  /* realce da busca vem antes da marcação do glossário: um termo
+     encontrado pela busca é marcado com <mark> e, nesse caso, abre
+     mão do tooltip — o realce tem prioridade enquanto há filtro ativo. */
+  if(state.q) highlight(list, state.q);
+  applyTerms(list);
+}
+
+function stepLabel(id){
+  var k = STEP_OF[id];
+  if(k === "transversal") return "Transversal · CADOC";
+  if(k === "fora") return "Fora de escopo";
+  for(var i=0;i<STEPS.length;i++){
+    if(STEPS[i].key === k) return "Etapa " + String(i+1).padStart(2,"0") + " · " + STEPS[i].name;
+  }
+  return "";
+}
+
+function stepName(k){
+  for(var i=0;i<STEPS.length;i++){ if(STEPS[i].key === k) return "Etapa: " + STEPS[i].name; }
+  return "";
+}
+
+/* ============================================================
+   Busca: percurso de nós de texto
+   ============================================================ */
+function walkText(root, fn){
+  var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function(n){
+      if(!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      var p = n.parentElement;
+      if(!p || p.closest("abbr,mark,script,style,.no-term")) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  var nodes = [], n;
+  while((n = w.nextNode())) nodes.push(n);
+  nodes.forEach(fn);
+}
+
+function highlight(root, q){
+  var terms = q.split(/\s+/).filter(function(t){ return t.length > 1; }).map(norm);
+  if(!terms.length) return;
+  walkText(root, function(node){
+    var text = node.nodeValue, low = norm(text), hits = [];
+    terms.forEach(function(t){
+      var i = low.indexOf(t);
+      while(i > -1){ hits.push([i, i + t.length]); i = low.indexOf(t, i + t.length); }
+    });
+    if(!hits.length) return;
+    hits.sort(function(a,b){ return a[0] - b[0]; });
+    var merged = [];
+    hits.forEach(function(h){
+      var last = merged[merged.length-1];
+      if(last && h[0] <= last[1]) last[1] = Math.max(last[1], h[1]);
+      else merged.push(h.slice());
+    });
+    var frag = document.createDocumentFragment(), pos = 0;
+    merged.forEach(function(h){
+      if(h[0] > pos) frag.appendChild(document.createTextNode(text.slice(pos, h[0])));
+      var m = document.createElement("mark");
+      m.textContent = text.slice(h[0], h[1]);
+      frag.appendChild(m);
+      pos = h[1];
+    });
+    if(pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+    node.parentNode.replaceChild(frag, node);
+  });
+}
+
+/* ============================================================
+   Glossário — marcação + tooltip
+   ============================================================ */
+var DEFS = {
+  "ccb":                 ["CCB", "Cédula de Crédito Bancário."],
+  "scd":                 ["SCD", "Sociedade de Crédito Direto (instituição financeira emissora)."],
+  "ipoc":                ["IPOC", "Identificador Padrão de Operação de Crédito (dado exigido no registro B3 conforme norma CVM 175)."],
+  "cadoc":               ["CADOC", "Documentos de remessa de informações ao BACEN — 3040, 3044 e 3050."],
+  "cdi":                 ["Índice pós-fixado", "CDI, IPCA ou outros indexadores aplicáveis às parcelas."],
+  "ipca":                ["Índice pós-fixado", "CDI, IPCA ou outros indexadores aplicáveis às parcelas."],
+  "ágio":                ["Ágio / Deságio", "Diferencial aplicado no valor da cessão em relação ao valor presente."],
+  "deságio":             ["Ágio / Deságio", "Diferencial aplicado no valor da cessão em relação ao valor presente."],
+  "confissão de dívida": ["Confissão de dívida", "Modalidade de CCB que substitui 1 a N títulos vencidos/renegociados."]
+};
+
+var TERM_RE;
+try{
+  TERM_RE = new RegExp("(?<![\\wÀ-ÿ])(confissão de dívida|deságio|ágio|CCB|SCD|IPOC|CADOC|CDI|IPCA)(?![\\wÀ-ÿ])", "gi");
+}catch(e){
+  TERM_RE = new RegExp("(confissão de dívida|deságio|ágio|CCB|SCD|IPOC|CADOC|CDI|IPCA)", "gi");
+}
+
+function applyTerms(root){
+  walkText(root, function(node){
+    var text = node.nodeValue;
+    TERM_RE.lastIndex = 0;
+    if(!TERM_RE.test(text)) return;
+    TERM_RE.lastIndex = 0;
+    var frag = document.createDocumentFragment(), pos = 0, m;
+    while((m = TERM_RE.exec(text)) !== null){
+      var key = m[0].toLowerCase(), def = DEFS[key];
+      if(!def) continue;
+      if(m.index > pos) frag.appendChild(document.createTextNode(text.slice(pos, m.index)));
+      var a = document.createElement("abbr");
+      a.className = "term";
+      a.tabIndex = 0;
+      a.dataset.t = def[0];
+      a.dataset.d = def[1];
+      a.textContent = m[0];
+      frag.appendChild(a);
+      pos = m.index + m[0].length;
+    }
+    if(pos === 0) return;
+    if(pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+    node.parentNode.replaceChild(frag, node);
+  });
+}
+
+var tip = $("#tip");
+function showTip(el){
+  tip.innerHTML = '<span class="t"></span><span class="d"></span>';
+  tip.querySelector(".t").textContent = el.dataset.t;
+  tip.querySelector(".d").textContent = el.dataset.d;
+  tip.classList.add("on");
+  tip.setAttribute("aria-hidden","false");
+  var r = el.getBoundingClientRect(), tr = tip.getBoundingClientRect();
+  var left = r.left + r.width/2 - tr.width/2;
+  left = Math.max(12, Math.min(left, window.innerWidth - tr.width - 12));
+  var top = r.top - tr.height - 9;
+  if(top < 8) top = r.bottom + 9;
+  tip.style.left = left + "px";
+  tip.style.top  = top + "px";
+}
+function hideTip(){ tip.classList.remove("on"); tip.setAttribute("aria-hidden","true"); }
+
+document.addEventListener("mouseover", function(e){
+  var t = e.target.closest ? e.target.closest("abbr.term") : null;
+  if(t) showTip(t);
+});
+document.addEventListener("mouseout", function(e){
+  if(e.target.closest && e.target.closest("abbr.term")) hideTip();
+});
+document.addEventListener("focusin", function(e){
+  var t = e.target.closest ? e.target.closest("abbr.term") : null;
+  if(t) showTip(t);
+});
+document.addEventListener("focusout", hideTip);
+window.addEventListener("scroll", hideTip, {passive:true});
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") hideTip(); });
+
+/* ============================================================
+   Controles
+   ============================================================ */
+var qEl = $("#q"), qClear = $("#qclear");
+qEl.addEventListener("input", function(){
+  state.q = qEl.value.trim();
+  qClear.classList.toggle("on", !!qEl.value);
+  render();
+});
+qClear.addEventListener("click", function(){
+  qEl.value = ""; state.q = ""; qClear.classList.remove("on"); qEl.focus(); render();
+});
+$("#reset").addEventListener("click", function(){
+  state.q = ""; state.sys = null; state.step = null;
+  qEl.value = ""; qClear.classList.remove("on");
+  render();
+});
+$("#sort-mod").addEventListener("click", function(){
+  state.sort = "mod";
+  this.classList.add("on"); $("#sort-orig").classList.remove("on");
+  render();
+});
+$("#sort-orig").addEventListener("click", function(){
+  state.sort = "orig";
+  this.classList.add("on"); $("#sort-mod").classList.remove("on");
+  render();
+});
+document.addEventListener("keydown", function(e){
+  if((e.key === "/" || (e.key === "k" && (e.metaKey || e.ctrlKey))) && document.activeElement !== qEl){
+    e.preventDefault(); qEl.focus(); qEl.select();
+  }
+});
+
+/* ============================================================
+   Deep link para um RF
+   ============================================================ */
+function gotoHash(){
+  var h = location.hash.replace("#","");
+  if(!/^RF-\d{2}$/.test(h)) return;
+  if(!document.getElementById(h)){
+    state.q = ""; state.sys = null; state.step = null;
+    qEl.value = ""; qClear.classList.remove("on");
+    render();
+  }
+  var el = document.getElementById(h);
+  if(!el) return;
+  el.scrollIntoView({behavior:"smooth", block:"center"});
+  el.classList.add("flash");
+  setTimeout(function(){ el.classList.remove("flash"); }, 1600);
+}
+window.addEventListener("hashchange", gotoHash);
+
+/* ============================================================
+   Nav ativa + voltar ao topo
+   ============================================================ */
+function initNav(){
+  var links = $$(".navlinks a");
+  var map = {};
+  links.forEach(function(a){ map[a.getAttribute("href").slice(1)] = a; });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        links.forEach(function(a){ a.classList.remove("active"); });
+        if(map[en.target.id]) map[en.target.id].classList.add("active");
+      }
+    });
+  }, {rootMargin:"-60px 0px -70% 0px", threshold:0});
+  $$("main section").forEach(function(s){ io.observe(s); });
+
+  var top = $("#totop");
+  top.addEventListener("click", function(){ window.scrollTo({top:0, behavior:"smooth"}); });
+  window.addEventListener("scroll", function(){
+    top.classList.toggle("on", window.scrollY > 700);
+  }, {passive:true});
+}
+
+/* ============================================================
+   Boot
+   ============================================================ */
+buildFlow();
+buildChips();
+buildSwim();
+render();
+applyTerms(document.querySelector("main"));
+applyTerms(document.querySelector(".hero"));
+initNav();
+if(location.hash) setTimeout(gotoHash, 120);
+
+})();
+</script>
+</body>
+</html>
